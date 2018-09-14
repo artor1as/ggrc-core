@@ -13,32 +13,24 @@ import '../../components/mapping-controls/mapping-type-selector';
 
 import template from './object-mapper.mustache';
 
+import tracker from '../../tracker';
 import ObjectOperationsBaseVM from '../view-models/object-operations-base-vm';
 import {
   isInScopeModel,
   isSnapshotModel,
   isSnapshotParent,
 } from '../../plugins/utils/snapshot-utils';
-import {
-  getPageInstance,
-} from '../../plugins/utils/current-page-utils';
+import {getPageInstance} from '../../plugins/utils/current-page-utils';
 import {refreshCounts} from '../../plugins/utils/widgets-utils';
-import RefreshQueue from '../../models/refresh_queue';
 import {
-  BEFORE_MAPPING,
+  MAP_OBJECTS,
   REFRESH_MAPPING,
   REFRESH_SUB_TREE,
-  MAP_OBJECTS,
+  BEFORE_MAPPING,
 } from '../../events/eventTypes';
-import {backendGdriveClient} from '../../plugins/ggrc-gapi-client';
-import tracker from '../../tracker';
-import {
-  allowedToMap,
-} from '../../plugins/ggrc_utils';
-import Mappings from '../../models/mappers/mappings';
-import Relationship from '../../models/service-models/relationship';
+import {allowedToMap} from '../../plugins/ggrc_utils';
+import {mapObjects as mapObjectsUtil} from '../../plugins/utils/mapper-utils';
 import * as businessModels from '../../models/business-models';
-import * as mappingModels from '../../models/mapping-models';
 
 let DEFAULT_OBJECT_MAP = {
   Assessment: 'Control',
@@ -282,91 +274,49 @@ export default can.Component.extend({
       this.viewModel.attr('is_saving', true);
       this.mapObjects(selectedObjects);
     },
-    mapObjects: function (objects) {
-      let type = this.viewModel.attr('type');
-      let object = this.viewModel.attr('object');
-      let instance = businessModels[object].findInCacheById(
-        this.viewModel.attr('join_object_id'));
-      let mapping;
-      let Model;
-      let data = {};
-      let defer = [];
-      let que = new RefreshQueue();
-      let stopFn = tracker.start(tracker.FOCUS_AREAS.MAPPINGS(instance.type),
+    mapObjects(objects) {
+      const viewModel = this.viewModel;
+      const object = viewModel.attr('object');
+      const type = viewModel.attr('type');
+      const instance = businessModels[object].findInCacheById(
+        viewModel.attr('join_object_id')
+      );
+      let stopFn = tracker.start(
+        tracker.FOCUS_AREAS.MAPPINGS(instance.type),
         tracker.USER_JOURNEY_KEYS.MAP_OBJECTS(type),
-        tracker.USER_ACTIONS.MAPPING_OBJECTS(objects.length));
+        tracker.USER_ACTIONS.MAPPING_OBJECTS(objects.length)
+      );
 
       instance.dispatch({
         ...BEFORE_MAPPING,
         destinationType: type,
       });
 
-      que.enqueue(instance).trigger().done((inst) => {
-        data.context = instance.context || null;
-        objects.forEach((destination) => {
-          let modelInstance;
-          let isAllowed;
-          // Use simple Relationship Model to map Snapshot
-          if (this.viewModel.attr('useSnapshots')) {
-            modelInstance = new Relationship({
-              context: data.context,
-              source: instance,
-              destination: {
-                href: '/api/snapshots/' + destination.id,
-                type: 'Snapshot',
-                id: destination.id,
-              },
-            });
+      mapObjectsUtil(instance, objects, {
+        useSnapshots: viewModel.attr('useSnapshots'),
+      })
+        .then(() => {
+          stopFn();
 
-            return defer.push(modelInstance.save());
-          }
-
-          isAllowed = allowedToMap(instance, destination);
-
-          if (!isAllowed) {
-            return;
-          }
-          mapping = Mappings.get_canonical_mapping(object, type);
-          Model = mappingModels[mapping.model_name];
-          data[mapping.object_attr] = {
-            href: instance.href,
-            type: instance.type,
-            id: instance.id,
-          };
-          data[mapping.option_attr] = destination;
-          modelInstance = new Model(data);
-          defer.push(backendGdriveClient.withAuth(() => {
-            return modelInstance.save();
-          }));
-        });
-
-        $.when(...defer)
-          .fail((response, message) => {
-            $('body').trigger('ajax:flash', {error: message});
-          })
-          .always(() => {
-            this.viewModel.attr('is_saving', false);
-            this.closeModal();
-          })
-          .done(() => {
-            if (instance && instance.dispatch) {
-              instance.dispatch('refreshInstance');
-              instance.dispatch({
-                ...REFRESH_MAPPING,
-                destinationType: type,
-              });
-            }
-
-            stopFn();
-
-            if (this.viewModel.attr('refreshCounts')) {
-              // This Method should be modified to event
-              refreshCounts();
-            }
-
-            instance.dispatch(REFRESH_SUB_TREE);
+          instance.dispatch('refreshInstance');
+          instance.dispatch({
+            ...REFRESH_MAPPING,
+            destinationType: type,
           });
-      });
+          instance.dispatch(REFRESH_SUB_TREE);
+
+          if (viewModel.attr('refreshCounts')) {
+            // This Method should be modified to event
+            refreshCounts();
+          }
+        })
+        .catch((response, message) => {
+          $('body').trigger('ajax:flash', {error: message});
+        })
+        .finally(() => {
+          viewModel.attr('is_saving', false);
+          this.closeModal();
+        });
     },
   },
 
