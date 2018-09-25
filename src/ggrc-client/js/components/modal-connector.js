@@ -61,6 +61,90 @@ export default can.Component.extend({
         }
       });
     },
+    deferredUpdate: function () {
+      let changes = this.changes;
+      let instance = this.instance;
+
+      if (!changes.length) {
+        const hasPendingJoins = _.get(instance, '_pending_joins.length') > 0;
+        if (hasPendingJoins) {
+          this.makeDelayedResolving();
+        }
+        return;
+      }
+      // Add pending operations
+      this.preparePendingJoins();
+
+      this.makeDelayedResolving();
+    },
+    addMappings(el, ev, data) {
+      ev.stopPropagation();
+
+      can.each(data.arr || [data], (obj) => {
+        const changes = this.attr('changes');
+        const indexOfRemoveChange = this.findObjectInChanges(obj, 'remove');
+
+        if (indexOfRemoveChange !== -1) {
+          // remove "remove" change
+          changes.splice(indexOfRemoveChange, 1);
+        } else {
+          // add "add" change
+          changes.push({what: obj, how: 'add'});
+        }
+
+        this.addListItem(obj);
+      });
+    },
+    removeMappings(el, ev) {
+      ev.stopPropagation();
+
+      can.map(el.find('.result'), function (resultEl) {
+        let obj = $(resultEl).data('result');
+        let len = this.list.length;
+        const changes = this.changes;
+        const indexOfAddChange = this.findObjectInChanges(obj, 'add');
+
+        if (indexOfAddChange !== -1) {
+          // remove "add" change
+          changes.splice(indexOfAddChange, 1);
+        } else {
+          // add "remove" change
+          changes.push({what: obj, how: 'remove'});
+        }
+
+        for (; len >= 0; len--) {
+          if (this.list[len] === obj) {
+            this.list.splice(len, 1);
+          }
+        }
+      }.bind(this));
+    },
+    addListItem(item) {
+      let snapshotObject;
+
+      if (isSnapshotType(item) &&
+        item.snapshotObject) {
+        snapshotObject = item.snapshotObject;
+        item.attr('title', snapshotObject.title);
+        item.attr('description', snapshotObject.description);
+        item.attr('class', snapshotObject.class);
+        item.attr('snapshot_object_class', 'snapshot-object');
+        item.attr('viewLink', snapshotObject.originalLink);
+      } else if (!isSnapshotType(item) && item.reify) {
+        // add full item object from cache
+        // if it isn't snapshot
+        item = item.reify();
+      }
+
+      this.list.push(item);
+    },
+    setListItems(list) {
+      let currentList = this.attr('list');
+      this.attr('list', currentList.concat(can.map(list,
+        function (binding) {
+          return binding.instance || binding;
+        })));
+    },
     findObjectInChanges(object, changeType) {
       return _.findIndex(this.attr('changes'), (change) => {
         const {what} = change;
@@ -90,7 +174,7 @@ export default can.Component.extend({
           objectToAdd = model.findInCacheById(defaultMapping.id);
           instance
             .mark_for_addition('related_objects_as_source', objectToAdd, {});
-          that.addListItem(objectToAdd);
+          that.viewModel.addListItem(objectToAdd);
         }
       });
 
@@ -102,105 +186,26 @@ export default can.Component.extend({
         Mappings.get_binding(vm.source_mapping, instance)
           .refresh_instances()
           .then(function (list) {
-            this.setListItems(list);
+            this.viewModel.setListItems(list);
           }.bind(this));
       }
 
       this.on();
     },
-    setListItems: function (list) {
-      let currentList = this.viewModel.attr('list');
-      this.viewModel.attr('list', currentList.concat(can.map(list,
-        function (binding) {
-          return binding.instance || binding;
-        })));
-    },
-    deferredUpdate: function () {
-      const viewModel = this.viewModel;
-      let changes = viewModel.changes;
-      let instance = viewModel.instance;
-
-      if (!changes.length) {
-        const hasPendingJoins = _.get(instance, '_pending_joins.length') > 0;
-        if (hasPendingJoins) {
-          viewModel.makeDelayedResolving();
-        }
-        return;
-      }
-      // Add pending operations
-      viewModel.preparePendingJoins();
-
-      viewModel.makeDelayedResolving();
-    },
     '{instance} updated'() {
-      this.deferredUpdate();
+      this.viewModel.deferredUpdate();
     },
     '{instance} created'() {
-      this.deferredUpdate();
+      this.viewModel.deferredUpdate();
     },
-    '[data-toggle=unmap] click': function (el, ev) {
-      ev.stopPropagation();
-
-      can.map(el.find('.result'), function (resultEl) {
-        let obj = $(resultEl).data('result');
-        let len = this.viewModel.list.length;
-        const changes = this.viewModel.changes;
-        const indexOfAddChange = this.viewModel.findObjectInChanges(obj, 'add');
-
-        if (indexOfAddChange !== -1) {
-          // remove "add" change
-          changes.splice(indexOfAddChange, 1);
-        } else {
-          // add "remove" change
-          changes.push({what: obj, how: 'remove'});
-        }
-
-        for (; len >= 0; len--) {
-          if (this.viewModel.list[len] === obj) {
-            this.viewModel.list.splice(len, 1);
-          }
-        }
-      }.bind(this));
+    '[data-toggle=unmap] click'(...args) {
+      this.viewModel.removeMappings(...args);
     },
-    'a[data-object-source] modal:success': 'addMapings',
-    'defer:add': 'addMapings',
-    addMapings(el, ev, data) {
-      ev.stopPropagation();
-
-      can.each(data.arr || [data], (obj) => {
-        const changes = this.viewModel.attr('changes');
-        const indexOfRemoveChange = this.viewModel.findObjectInChanges(obj,
-          'remove');
-
-        if (indexOfRemoveChange !== -1) {
-          // remove "remove" change
-          changes.splice(indexOfRemoveChange, 1);
-        } else {
-          // add "add" change
-          changes.push({what: obj, how: 'add'});
-        }
-
-        this.addListItem(obj);
-      });
+    'a[data-object-source] modal:success'(...args) {
+      this.viewModel.addMappings(...args);
     },
-    addListItem: function (item) {
-      let snapshotObject;
-
-      if (isSnapshotType(item) &&
-        item.snapshotObject) {
-        snapshotObject = item.snapshotObject;
-        item.attr('title', snapshotObject.title);
-        item.attr('description', snapshotObject.description);
-        item.attr('class', snapshotObject.class);
-        item.attr('snapshot_object_class', 'snapshot-object');
-        item.attr('viewLink', snapshotObject.originalLink);
-      } else if (!isSnapshotType(item) && item.reify) {
-        // add full item object from cache
-        // if it isn't snapshot
-        item = item.reify();
-      }
-
-      this.viewModel.list.push(item);
+    'defer:add'(...args) {
+      this.viewModel.addMappings(...args);
     },
   },
 });
