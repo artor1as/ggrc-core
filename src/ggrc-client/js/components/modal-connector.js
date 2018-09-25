@@ -47,6 +47,20 @@ export default can.Component.extend({
       const dfd = handlePendingJoins(instance);
       instance.delay_resolving_save_until(dfd);
     },
+    preparePendingJoins() {
+      can.each(this.attr('changes'), (item) => {
+        let mapping = this.mapping ||
+            Mappings.get_canonical_mapping_name(
+              this.instance.constructor.shortName,
+              item.what.constructor.shortName);
+        if (item.how === 'add') {
+          this.instance
+            .mark_for_addition(mapping, item.what, item.extra);
+        } else {
+          this.instance.mark_for_deletion(mapping, item.what);
+        }
+      });
+    },
   },
   events: {
     init: function () {
@@ -104,18 +118,7 @@ export default can.Component.extend({
         return;
       }
       // Add pending operations
-      can.each(changes, (item) => {
-        let mapping = viewModel.mapping ||
-            Mappings.get_canonical_mapping_name(
-              viewModel.instance.constructor.shortName,
-              item.what.constructor.shortName);
-        if (item.how === 'add') {
-          viewModel.instance
-            .mark_for_addition(mapping, item.what, item.extra);
-        } else {
-          viewModel.instance.mark_for_deletion(mapping, item.what);
-        }
-      });
+      viewModel.preparePendingJoins();
 
       viewModel.makeDelayedResolving();
     },
