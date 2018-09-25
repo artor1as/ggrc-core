@@ -61,6 +61,16 @@ export default can.Component.extend({
         }
       });
     },
+    findObjectInChanges(object, changeType) {
+      return _.findIndex(this.attr('changes'), (change) => {
+        const {what} = change;
+        return (
+          what.id === object.id &&
+          what.type === object.type &&
+          change.how === changeType
+        );
+      });
+    },
   },
   events: {
     init: function () {
@@ -134,8 +144,17 @@ export default can.Component.extend({
       can.map(el.find('.result'), function (resultEl) {
         let obj = $(resultEl).data('result');
         let len = this.viewModel.list.length;
+        const changes = this.viewModel.changes;
+        const indexOfAddChange = this.viewModel.findObjectInChanges(obj, 'add');
 
-        this.viewModel.changes.push({what: obj, how: 'remove'});
+        if (indexOfAddChange !== -1) {
+          // remove "add" change
+          changes.splice(indexOfAddChange, 1);
+        } else {
+          // add "remove" change
+          changes.push({what: obj, how: 'remove'});
+        }
+
         for (; len >= 0; len--) {
           if (this.viewModel.list[len] === obj) {
             this.viewModel.list.splice(len, 1);
