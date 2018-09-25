@@ -242,7 +242,6 @@ export default can.Component.extend({
       let data = {};
 
       data = {
-        multi_map: true,
         arr: _.compact(_.map(
           objects,
           function (desination) {

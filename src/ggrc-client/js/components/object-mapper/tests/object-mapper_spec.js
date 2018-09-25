@@ -391,7 +391,7 @@ describe('object-mapper component', function () {
       handler.call(that);
       expect(spyObj.trigger)
         .toHaveBeenCalledWith('defer:add', [
-          {multi_map: true, arr: []},
+          {arr: []},
         ]);
     });
     it('calls closeModal', function () {
