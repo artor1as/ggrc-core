@@ -105,7 +105,7 @@ export default can.Component.extend({
           return binding.instance || binding;
         })));
     },
-    deferred_update: function () {
+    deferredUpdate: function () {
       const viewModel = this.viewModel;
       let changes = viewModel.changes;
       let instance = viewModel.instance;
@@ -122,8 +122,12 @@ export default can.Component.extend({
 
       viewModel.makeDelayedResolving();
     },
-    '{instance} updated': 'deferred_update',
-    '{instance} created': 'deferred_update',
+    '{instance} updated'() {
+      this.deferredUpdate();
+    },
+    '{instance} created'() {
+      this.deferredUpdate();
+    },
     '[data-toggle=unmap] click': function (el, ev) {
       ev.stopPropagation();
 
