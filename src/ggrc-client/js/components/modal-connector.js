@@ -6,11 +6,13 @@
 import {
   isSnapshotType,
 } from '../plugins/utils/snapshot-utils';
-import {
-  handlePendingJoins,
-} from '../models/pending-joins';
 import Mappings from '../models/mappers/mappings';
+import * as MapperUtils from '../plugins/utils/mapper-utils';
 import * as businessModels from '../models/business-models';
+import {
+  REFRESH_MAPPING,
+  REFRESH_SUB_TREE,
+} from '../events/eventTypes';
 
 /*
  Below this line we're defining a can.Component, which is in this file
@@ -34,6 +36,7 @@ export default can.Component.extend({
         value: false,
       },
     },
+    useSnapshots: false,
     instance: null,
     source_mapping: '@',
     default_mappings: [], // expects array of objects
@@ -42,10 +45,25 @@ export default can.Component.extend({
     needToInstanceRefresh: true,
     // the following are just for the case when we have no object to start with,
     changes: [],
-    makeDelayedResolving() {
-      const instance = this.attr('instance');
-      const dfd = handlePendingJoins(instance);
-      instance.delay_resolving_save_until(dfd);
+    performMapActions(instance, objects) {
+      let pendingMap = Promise.resolve();
+
+      if (objects.length > 0) {
+        pendingMap = MapperUtils.mapObjects(instance, objects, {
+          useSnapshots: this.attr('useSnapshots'),
+        });
+      }
+
+      return pendingMap;
+    },
+    performUnmapActions(instance, objects) {
+      let pendingUnmap = Promise.resolve();
+
+      if (objects.length > 0) {
+        pendingUnmap = MapperUtils.unmapObjects(instance, objects);
+      }
+
+      return pendingUnmap;
     },
     preparePendingJoins() {
       can.each(this.attr('changes'), (item) => {
@@ -61,21 +79,45 @@ export default can.Component.extend({
         }
       });
     },
-    deferredUpdate: function () {
-      let changes = this.changes;
-      let instance = this.instance;
+    afterDeferredUpdate(objects) {
+      const instance = this.attr('instance');
+      const objectTypes = _.uniq(objects
+        .map((object) => object.constructor.shortName)
+      );
 
-      if (!changes.length) {
-        const hasPendingJoins = _.get(instance, '_pending_joins.length') > 0;
-        if (hasPendingJoins) {
-          this.makeDelayedResolving();
-        }
-        return;
-      }
-      // Add pending operations
+      objectTypes.forEach((objectType) => {
+        instance.dispatch({
+          ...REFRESH_MAPPING,
+          destinationType: objectType,
+        });
+      });
+      instance.dispatch(REFRESH_SUB_TREE);
+    },
+    handlePendingOperations(pendingJoins) {
+      const instance = this.attr('instance');
+      const getObject = (pj) => pj.what;
+      const objectsForMap = pendingJoins.filter((pj) => pj.how === 'add')
+        .map(getObject);
+      const objectsForUnmap = pendingJoins.filter((pj) => pj.how === 'remove')
+        .map(getObject);
+
+      return Promise.all([
+        this.performMapActions(instance, objectsForMap),
+        this.performUnmapActions(instance, objectsForUnmap),
+      ]);
+    },
+    async deferredUpdate() {
+      const instance = this.attr('instance');
+
       this.preparePendingJoins();
 
-      this.makeDelayedResolving();
+      // We need to remove all _pending_joins from the instance (via splice())
+      // in order to resolveDeferredBindings util after instance.save
+      // via modal functionality doesn't handle it second time.
+      const pendingJoins = instance._pending_joins.splice(0);
+      await this.handlePendingOperations(pendingJoins);
+      const objects = pendingJoins.map((pj) => pj.what);
+      this.afterDeferredUpdate(objects);
     },
     addMappings(objects) {
       can.each(objects, (obj) => {

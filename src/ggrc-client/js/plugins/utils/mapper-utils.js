@@ -61,6 +61,17 @@ async function mapObjects(instance, objects, {
   });
 }
 
+function unmapObjects(instance, objects) {
+  const pendingUnmap = objects.map((object) =>
+    mappingModels.Relationship
+      .findRelationship(instance, object)
+      .then((relationship) => relationship.destroy())
+  );
+
+  return Promise.all(pendingUnmap);
+}
+
 export {
   mapObjects,
+  unmapObjects,
 };

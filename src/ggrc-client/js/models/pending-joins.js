@@ -112,17 +112,4 @@ function _removeHandler(obj, pj) {
   return dfds;
 }
 
-const handlePendingJoins = (obj) => {
-  const hasPendingJoins = _.get(obj, '_pending_joins.length') > 0;
-
-  if (!hasPendingJoins) {
-    return can.Deferred().resolve(obj);
-  }
-
-  return _resolveDeferredBindings(obj);
-};
-
-export {
-  resolveDeferredBindings,
-  handlePendingJoins,
-};
+export {resolveDeferredBindings};
