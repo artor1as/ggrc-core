@@ -427,7 +427,6 @@ describe('object-mapper component', function () {
       handler = events['.modal-footer .btn-map click'];
       that = {
         viewModel: viewModel,
-        closeModal: jasmine.createSpy(),
         deferredSave: jasmine.createSpy().and.returnValue('deferredSave'),
         mapObjects: events.mapObjects,
       };
@@ -452,16 +451,11 @@ describe('object-mapper component', function () {
       result = handler.call(that, element, event);
       expect(result).toEqual('deferredSave');
     });
-    it('calls closeModal()', function () {
+
+    it('maps selected objects', function () {
+      spyOn(that, 'mapObjects');
       handler.call(that, element, event);
-      expect(that.closeModal).toHaveBeenCalled();
-    });
-    it('triggers error message if fail', function () {
-      spyOn($, 'when')
-        .and.returnValue(can.Deferred().reject());
-      handler.call(that, element, event);
-      expect($.prototype.trigger)
-        .toHaveBeenCalledWith('ajax:flash', {error: undefined});
+      expect(that.mapObjects).toHaveBeenCalled();
     });
   });
 
