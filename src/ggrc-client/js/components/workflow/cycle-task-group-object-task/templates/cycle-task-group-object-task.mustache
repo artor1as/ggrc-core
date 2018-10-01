@@ -225,6 +225,7 @@
         <div class="info-pane__sidebar">
           <comment-data-provider {instance}="instance" class="flex-box flex-col">
             <div class="info-pane__section-title">Responses/Comments</div>
+            {{#unless isEditDenied}}
               <comment-add-form class="comment-add-form"
                 {instance}="instance"
                 {is-saving}="isLoading"
@@ -232,6 +233,7 @@
                 (after-create)="processComment(%event)"
                 {notifications-info}="'Notify Task Assignees and Task Secondary Assignees'">
               </comment-add-form>
+            {{/unless}}
             <mapped-comments {base-instance}="instance" {mapped-items}="comments"></mapped-comments>
           </comment-data-provider>
         </div>
