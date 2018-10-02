@@ -77,10 +77,8 @@ export default can.Component.extend({
 
       this.makeDelayedResolving();
     },
-    addMappings(el, ev, data) {
-      ev.stopPropagation();
-
-      can.each(data.arr || [data], (obj) => {
+    addMappings(objects) {
+      can.each(objects, (obj) => {
         const changes = this.attr('changes');
         const indexOfRemoveChange = this.findObjectInChanges(obj, 'remove');
 
@@ -201,11 +199,13 @@ export default can.Component.extend({
     '[data-toggle=unmap] click'(...args) {
       this.viewModel.removeMappings(...args);
     },
-    'a[data-object-source] modal:success'(...args) {
-      this.viewModel.addMappings(...args);
+    'a[data-object-source] modal:success'(el, ev, object) {
+      ev.stopPropagation();
+      this.viewModel.addMappings([object]);
     },
-    'defer:add'(...args) {
-      this.viewModel.addMappings(...args);
+    'defer:add'(el, ev, {arr: objects}) {
+      ev.stopPropagation();
+      this.viewModel.addMappings(objects);
     },
   },
 });
