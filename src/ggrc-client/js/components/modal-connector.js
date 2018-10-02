@@ -164,13 +164,24 @@ export default can.Component.extend({
     },
     'a[data-object-source] modal:success': 'addMapings',
     'defer:add': 'addMapings',
-    addMapings: function (el, ev, data) {
+    addMapings(el, ev, data) {
       ev.stopPropagation();
 
-      can.each(data.arr || [data], function (obj) {
-        this.viewModel.changes.push({what: obj, how: 'add'});
+      can.each(data.arr || [data], (obj) => {
+        const changes = this.viewModel.attr('changes');
+        const indexOfRemoveChange = this.viewModel.findObjectInChanges(obj,
+          'remove');
+
+        if (indexOfRemoveChange !== -1) {
+          // remove "remove" change
+          changes.splice(indexOfRemoveChange, 1);
+        } else {
+          // add "add" change
+          changes.push({what: obj, how: 'add'});
+        }
+
         this.addListItem(obj);
-      }, this);
+      });
     },
     addListItem: function (item) {
       let snapshotObject;
