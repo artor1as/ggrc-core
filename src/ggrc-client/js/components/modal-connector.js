@@ -93,29 +93,24 @@ export default can.Component.extend({
         this.addListItem(obj);
       });
     },
-    removeMappings(el, ev) {
-      ev.stopPropagation();
+    removeMappings(obj) {
+      let len = this.list.length;
+      const changes = this.changes;
+      const indexOfAddChange = this.findObjectInChanges(obj, 'add');
 
-      can.map(el.find('.result'), function (resultEl) {
-        let obj = $(resultEl).data('result');
-        let len = this.list.length;
-        const changes = this.changes;
-        const indexOfAddChange = this.findObjectInChanges(obj, 'add');
+      if (indexOfAddChange !== -1) {
+        // remove "add" change
+        changes.splice(indexOfAddChange, 1);
+      } else {
+        // add "remove" change
+        changes.push({what: obj, how: 'remove'});
+      }
 
-        if (indexOfAddChange !== -1) {
-          // remove "add" change
-          changes.splice(indexOfAddChange, 1);
-        } else {
-          // add "remove" change
-          changes.push({what: obj, how: 'remove'});
+      for (; len >= 0; len--) {
+        if (this.list[len] === obj) {
+          this.list.splice(len, 1);
         }
-
-        for (; len >= 0; len--) {
-          if (this.list[len] === obj) {
-            this.list.splice(len, 1);
-          }
-        }
-      }.bind(this));
+      }
     },
     addListItem(item) {
       let snapshotObject;
@@ -196,8 +191,10 @@ export default can.Component.extend({
     '{instance} created'() {
       this.viewModel.deferredUpdate();
     },
-    '[data-toggle=unmap] click'(...args) {
-      this.viewModel.removeMappings(...args);
+    '[data-toggle=unmap] click'(el, ev) {
+      const unmapObject = el.find('.result').data('result');
+      ev.stopPropagation();
+      this.viewModel.removeMappings(unmapObject);
     },
     'a[data-object-source] modal:success'(el, ev, object) {
       ev.stopPropagation();
