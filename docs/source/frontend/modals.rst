@@ -19,9 +19,6 @@ Modals
 -  We apply modals controller in this file as well
 -  We are handling modal:success on modal-ajax.js. It's used to navigate
    to a new URL here.
--  Dirty checks - legacy code, can possibly be removed. ``data-dirty``
-   stuff in .mustache marks elements that need reload, but there are
-   only a few left any more
 -  Adding a new type of modal - create a new handler
 -  `modal show <https://github.com/reciprocity/ggrc-core/blob/1e370e487c4377d7e1162dd881954cc26cffe5a9/src/ggrc/assets/javascripts/bootstrap/modal-ajax.js#L355-L423>`_:
    handles stacking, positioning and prevents double submit and escape

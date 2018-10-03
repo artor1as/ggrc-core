@@ -158,8 +158,6 @@ import {changeUrl} from '../router';
         });
 
       $target.on('modal:success', function (e, data, xhr) {
-        let dirty;
-        let $active;
         let WARN_MSG = [
           'The $trigger element was not found in the DOM, thus some',
           'application events will not be propagated.',
@@ -183,17 +181,6 @@ import {changeUrl} from '../router';
           }
         } else {
           $target.modal_form('hide');
-          if ($trigger.data('dirty')) {
-            dirty = $($trigger.data('dirty').split(',')).map(function (i, val) {
-              return '[href="' + val.trim() + '"]';
-            }).get().join(',');
-            $(dirty).data('tab-loaded', false);
-          }
-          if (dirty) {
-            $active = $(dirty).filter('.active [href]');
-            $active.closest('.active').removeClass('active');
-            $active.click();
-          }
 
           // For some reason it can happen that the original $trigger element
           // is removed from the DOM and replaced with another identical
@@ -206,8 +193,6 @@ import {changeUrl} from '../router';
               return;
             }
           }
-
-          $trigger.trigger('routeparam', $trigger.data('route'));
 
           if (triggerParent && triggerParent.length) {
             $trigger = triggerParent;

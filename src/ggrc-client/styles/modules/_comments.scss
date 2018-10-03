@@ -70,9 +70,6 @@
         display: inline-block;
       }
     }
-    .evidence-list {
-      margin-top: 5px;
-    }
     .entry-attachment {
       &.tree-item-add {
         display: inline-block;
@@ -95,40 +92,6 @@
         margin-bottom: 10px;
         [class*="fa-"] {
           margin-top: 1px;
-        }
-      }
-    }
-    .entry-actions {
-      position: relative;
-      [class*="fa-"] {
-        margin-top: 0px;
-      }
-      .dropdown-menu {
-        @include border-radius(0);
-        min-width: 210px;
-        top: 100%;
-        right: 0;
-        left: auto;
-        li {
-          margin-bottom: 0;
-          a {
-            @include transition(background 0.2s ease, color 0.2s ease);
-            line-height: 30px;
-            padding: 0 10px;
-            background: none;
-            color: $gray;
-            i {
-              @include opacity(0.4);
-              margin: 7px 4px 0 0;
-            }
-            &:hover {
-              background: $headerBgnd;
-              color: $black;
-              i {
-                @include opacity(1);
-              }
-            }
-          }
         }
       }
     }
