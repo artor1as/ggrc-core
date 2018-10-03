@@ -980,7 +980,6 @@ export default can.Control({
     let that = this;
     let instance = this.options.instance;
     let ajd;
-    let instanceId = instance.id;
 
     if (this.wasDestroyed()) {
       return can.Deferred().reject();
@@ -1021,13 +1020,6 @@ export default can.Control({
           }
         }
 
-        if (instanceId === undefined &&
-          obj.is_declining_review &&
-          obj.is_declining_review === '1') { // new element
-          $(document.body).trigger('ajax:flash', {
-            success: 'Review declined',
-          });
-        }
         finish();
       });
     this.save_ui_status();
