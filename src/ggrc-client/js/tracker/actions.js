@@ -68,6 +68,5 @@ export const USER_ACTIONS = {
   CYCLE_TASK: {
     CHANGE_STATUS: 'Changing status of Task',
     BULK_UPDATE: 'Bulk update',
-    ADD_COMMENT: 'Adding a comment',
   },
 };

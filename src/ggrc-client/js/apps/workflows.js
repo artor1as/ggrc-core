@@ -57,7 +57,7 @@ WorkflowExtension.init_widgets = function () {
   let pageInstance = getPageInstance();
   let treeWidgets = GGRC.tree_view.base_widgets_by_type;
   let subTrees = GGRC.tree_view.sub_tree_for;
-  let models = ['TaskGroup', 'Workflow', 'CycleTaskEntry',
+  let models = ['TaskGroup', 'Workflow',
     'CycleTaskGroupObjectTask', 'CycleTaskGroupObject', 'CycleTaskGroup'];
   _.forEach(_workflowObjectTypes, function (type) {
     let widget;

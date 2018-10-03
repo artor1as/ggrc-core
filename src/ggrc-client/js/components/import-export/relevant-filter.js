@@ -38,7 +38,7 @@ export default can.Component.extend({
       // convert names to CMS models and prune invalid (undefined)
       let models = can.Map.keys(GGRC.tree_view.base_widgets_by_type);
       models = _.difference(_.uniq(models),
-        ['CycleTaskEntry', 'CycleTaskGroupObject']);
+        ['CycleTaskGroupObject']);
       models = _.map(models, function (mapping) {
         return businessModels[mapping];
       });

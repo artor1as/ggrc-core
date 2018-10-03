@@ -14,10 +14,6 @@ let titlesMap = {
     title: 'Total',
     icon: 'list-alt',
   },
-  CycleTaskEntry: {
-    title: 'Comments',
-    icon: 'comment-o',
-  },
   CycleTaskGroupObjectTask: {
     title: 'Total',
     icon: 'calendar-check-o',

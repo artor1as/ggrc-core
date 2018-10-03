@@ -7,11 +7,9 @@ import * as businessModels from './business-models';
 
 import AccessControlRole from './custom-roles/access-control-role';
 import CustomAttributeDefinition from './custom-attributes/custom-attribute-definition';
-import CycleTaskEntry from './service-models/cycle-task-entry';
 
 export default {
   ...businessModels,
   AccessControlRole,
   CustomAttributeDefinition,
-  CycleTaskEntry,
 };

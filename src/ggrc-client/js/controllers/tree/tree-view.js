@@ -18,7 +18,6 @@ import Mappings from '../../models/mappers/mappings';
       model: null,
       show_view: null,
       show_header: false,
-      footer_view: null,
       add_item_view: null,
       parent: null,
       list: null,
@@ -46,7 +45,6 @@ import Mappings from '../../models/mappers/mappings';
     },
     do_not_propagate: [
       'header_view',
-      'footer_view',
       'add_item_view',
       'list',
       'original_list',
@@ -174,15 +172,6 @@ import Mappings from '../../models/mappers/mappings';
       }
 
       this.init_count();
-
-      if (this.options.footer_view) {
-        dfds.push(
-          can.view(this.options.footer_view, this.options,
-            this._ifNotRemoved(function (frag) {
-              this.element.after(frag);
-            }.bind(this))
-          ));
-      }
 
       this._init_view_deferred = $.when.apply($.when, dfds);
       return this._init_view_deferred;
