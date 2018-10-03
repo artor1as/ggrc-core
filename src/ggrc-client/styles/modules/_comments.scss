@@ -3,63 +3,10 @@
  * Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
  */
 
-.add-comment {
-  margin: 0 0 20px;
-  padding-right: 40%;
-  .input--textarea{
-    width: 100%;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-  }
-  .controls {
-    margin-top: 15px;
-    &.top {
-      margin: 0 0 15px;
-    }
-    .input--inline {
-      margin: 4px 10px 0 7px;
-    }
-  }
-  textarea {
-    margin-bottom: 0;
-  }
-}
-
-.label-light {
-  background-color: lighten($blue, 55%);
-  span,
-  a {
-    color: $black;
-    text-shadow: none;
-    font-weight: normal;
-  }
-  a {
-    font-weight: bold;
-    text-decoration: none;
-    padding: 0 2px;
-    &:hover {
-      text-decoration: none;
-    }
-  }
-}
-
-.attachments-preview {
-  ul {
-    @extend %reset-list;
-  }
-  li {
-    display: inline-block;
-    margin: 4px 0 0;
-  }
-}
-
 .entry-list {
   @extend %reset-list;
-  margin-top: 4px;
   li {
     @extend %clearfix;
-    margin-bottom: 14px;
     .entry-author {
       color: $gray;
       font-size: 11px;
@@ -70,53 +17,5 @@
         display: inline-block;
       }
     }
-    .entry-attachment {
-      &.tree-item-add {
-        display: inline-block;
-        i {
-          margin-top: 1px;
-        }
-      }
-    }
-    &:last-child {
-      margin-bottom: 6px;
-    }
-    &.add-entry {
-      border-bottom: none;
-      margin-top: 12px;
-      textarea {
-        margin-bottom: 4px;
-      }
-      .entry-attachment {
-        display: inline-block;
-        margin-bottom: 10px;
-        [class*="fa-"] {
-          margin-top: 1px;
-        }
-      }
-    }
-  }
-  .sticky-filter {
-    display: none;
-  }
-}
-
-.comment-list {
-  @extend .entry-list;
-
-  .inline-edit__title {
-    display: none;
-  }
-  .comment-list__ca-description {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    box-sizing: border-box;
-    line-height: 20px;
-    max-height: 20px;
-    margin: 0;
-    padding: 2px 16px 0 4px !important;
-
-
   }
 }

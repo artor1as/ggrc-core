@@ -247,9 +247,6 @@ ul.new-tree {
     a {
       font-weight:bold;
     }
-    &.inner-tree-footer {
-      padding-left: 0;
-    }
     .inner-tree & {
       padding-left: 0;
       line-height: 30px;
@@ -415,14 +412,6 @@ ul.new-tree {
     margin-bottom: 0;
     max-height: 240px;
     overflow-y: auto;
-    .task-comments & {
-      max-height: none;
-      overflow-y: visible;
-
-      .person-data {
-        display: inline-block;
-      }
-    }
     & .tier-2-info {
       padding: 14px 10px 0 10px;
       .tier-2-info-content {
