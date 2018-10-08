@@ -4,257 +4,162 @@
 */
 
 import Component from '../cycle-task-group-object-task';
-import RefreshQueue from '../../../../models/refresh_queue';
 import * as WorkflowHelpers from '../../../../plugins/utils/workflow-utils';
 import * as CurrentPageUtils from '../../../../plugins/utils/current-page-utils';
+import * as ModelsUtils from '../../../../plugins/utils/models-utils';
+import * as StubModel from '../../../../models/stub';
+import {getComponentVM} from '../../../../../js_specs/spec_helpers';
+import Permission from '../../../../permission';
 
-describe('cycle-task-group-object-task component', function () {
+fdescribe('cycle-task-group-object-task component', function () {
   let viewModel;
 
   beforeEach(function () {
-    viewModel = new Component.prototype.viewModel({
-      instance: {
-        cycle: {},
-      },
+    viewModel = getComponentVM(Component);
+  });
+
+  describe('isInHistory get() method', () => {
+    let method;
+
+    beforeEach(function () {
+      method = viewModel.define.isInHistory.get.bind(viewModel);
+      spyOn(Permission, 'is_allowed_for').and.returnValue(false);
+      spyOn(StubModel, 'default');
     });
-    viewModel.attr('instance', {
-      cycle: {},
+
+    it('returns false when there are no "update permissions for cycle, ' +
+    'in which an instance is included', function (done) {
+      Permission.is_allowed_for.and.returnValue(false);
+      method(null, (result) => {
+        expect(result).toBe(false);
+        done();
+      });
+    });
+
+    describe('if there are "update" rights for cycle', () => {
+      beforeEach(function () {
+        Permission.is_allowed_for.and.returnValue(true);
+        spyOn(ModelsUtils, 'getModelInstance')
+          .and.returnValue(Promise.resolve());
+        viewModel.attr('instance', {
+          cycle: {
+            id: 1,
+            type: 'Cycle',
+          },
+        });
+        StubModel.default.and
+          .returnValue(viewModel.attr('instance.cycle'));
+      });
+
+      it('then is used a stub of an instance\'s cycle to check "update" ' +
+      'rights', function () {
+        method();
+
+        expect(Permission.is_allowed_for)
+          .toHaveBeenCalledWith('update', viewModel.attr('instance.cycle'));
+      });
+
+      it('returns true if instance\'s cycle is in history', function (done) {
+        ModelsUtils.getModelInstance.and.returnValue(Promise.resolve(
+          new can.Map({is_current: false})
+        ));
+
+        method(null, (result) => {
+          expect(result).toBe(true);
+          done();
+        });
+      });
+
+      it('returns false if instance\'s cycle is active', function (done) {
+        ModelsUtils.getModelInstance.and.returnValue(Promise.resolve(
+          new can.Map({is_current: true})
+        ));
+
+        method(null, (result) => {
+          expect(result).toBe(false);
+          done();
+        });
+      });
     });
   });
 
-  describe('viewModel scope', function () {
-    describe('init() method', function () {
-      let cycleDfd;
+  describe('isEditDenied get() method', () => {
+    let method;
+    let fakeViewModel;
 
-      beforeEach(function () {
-        cycleDfd = new can.Deferred();
-        spyOn(viewModel, 'loadCycle').and.returnValue(cycleDfd);
-      });
-
-      it('calls loadCycle method', function () {
-        viewModel.init();
-        expect(viewModel.loadCycle).toHaveBeenCalled();
-      });
-
-      it('loads workflow after cycle is loaded', function () {
-        spyOn(viewModel, 'loadWorkflow');
-        cycleDfd.resolve();
-
-        viewModel.init();
-        expect(viewModel.loadWorkflow).toHaveBeenCalled();
-      });
+    beforeEach(function () {
+      fakeViewModel = new can.Map();
+      method = viewModel.define.isEditDenied.get.bind(fakeViewModel);
+      spyOn(Permission, 'is_allowed_for');
     });
 
-    describe('loadCycle() method', function () {
-      describe('when reified cycle is not empty', function () {
-        let trigger;
-        let triggerDfd;
-        let reifiedCycle;
+    describe('returns true', () => {
+      it('if there are no "update "permissions for the instance', function () {
+        const instance = new can.Map({});
+        fakeViewModel.attr('instance', instance);
+        Permission.is_allowed_for.and.returnValue(false);
 
-        beforeEach(function () {
-          reifiedCycle = new can.Map({data: 'Data'});
-          viewModel.attr('instance.cycle').reify =
-            jasmine.createSpy('reify').and.returnValue(reifiedCycle);
+        const result = method();
 
-          triggerDfd = can.Deferred();
-          trigger = spyOn(RefreshQueue.prototype, 'trigger')
-            .and.returnValue(triggerDfd);
-        });
-
-        it('adds reified cycle to the refresh queue', function () {
-          let enqueue = spyOn(RefreshQueue.prototype, 'enqueue')
-            .and.returnValue({trigger: trigger});
-          viewModel.loadCycle();
-          expect(enqueue).toHaveBeenCalledWith(reifiedCycle);
-        });
-
-        it('triggers the refresh queue', function () {
-          viewModel.loadCycle();
-          expect(trigger).toHaveBeenCalled();
-        });
-
-        it('returns deferred result', function () {
-          let result = viewModel.loadCycle();
-          expect(can.isDeferred(result)).toBe(true);
-        });
-
-        describe('when the refresh queue was resolved', function () {
-          it('returns first result of response', function (done) {
-            let data = {data: 'Data'};
-            triggerDfd.resolve([data]);
-            viewModel.loadCycle().then(function (response) {
-              expect(response).toBe(data);
-              done();
-            });
-          });
-
-          it('sets cycle to viewModel', function (done) {
-            let data = 'cycle';
-            triggerDfd.resolve([data]);
-            viewModel.loadCycle().then(function () {
-              expect(viewModel.attr('cycle')).toEqual(data);
-              done();
-            });
-          });
-        });
+        expect(Permission.is_allowed_for)
+          .toHaveBeenCalledWith('update', instance);
+        expect(result).toBe(true);
       });
 
-      it('returns rejected deferred object', function (done) {
-        viewModel.loadCycle().fail(done);
+      it('if the instance is in history', function () {
+        Permission.is_allowed_for.and.returnValue(true);
+        fakeViewModel.attr('isInHistory', true);
+
+        expect(method()).toBe(true);
       });
     });
+  });
 
-    describe('loadWorkflow() method', () => {
-      let cycle;
+  describe('showWorfklowLink get() method', () => {
+    let getPageType;
 
-      beforeEach(function () {
-        cycle = new can.Map();
-      });
-
-      describe('when a user doesn\'t have enough permissions to get ' +
-      'informations about workflow', () => {
-        it('builds trimmed workflow object', function () {
-          const expectedResult = new can.Map();
-          spyOn(viewModel, 'buildTrimmedWorkflowObject')
-            .and.returnValue(expectedResult);
-          viewModel.loadWorkflow(cycle);
-          expect(viewModel.attr('workflow')).toBe(expectedResult);
-        });
-      });
-
-      describe('when cycle was loaded successfully', function () {
-        let trigger;
-        let triggerDfd;
-        let reifiedObject;
-
-        beforeEach(function () {
-          cycle.attr('workflow', {});
-          reifiedObject = {};
-          cycle.attr('workflow').reify = jasmine.createSpy('reify')
-            .and.returnValue(reifiedObject);
-
-          triggerDfd = can.Deferred();
-          trigger = spyOn(RefreshQueue.prototype, 'trigger')
-            .and.returnValue(triggerDfd);
-        });
-
-        describe('before workflow loading', function () {
-          let enqueue;
-
-          beforeEach(function () {
-            enqueue = spyOn(RefreshQueue.prototype, 'enqueue')
-              .and.returnValue({trigger: trigger});
-            triggerDfd.resolve();
-          });
-
-          it('pushes a workflow to refresh queue', function (done) {
-            viewModel.loadWorkflow(cycle)
-              .then(function () {
-                expect(enqueue).toHaveBeenCalledWith(reifiedObject);
-                done();
-              });
-          });
-
-          it('triggers refresh queue', function (done) {
-            viewModel.loadWorkflow(cycle)
-              .then(function () {
-                expect(trigger).toHaveBeenCalled();
-                done();
-              });
-          });
-        });
-
-        describe('after workflow loading', function () {
-          it('sets first value of loaded data to workflow field',
-            function (done) {
-              let data = {data: 'Data'};
-              triggerDfd.resolve([data]);
-              viewModel.loadWorkflow(cycle)
-                .then(function () {
-                  expect(viewModel.attr('workflow').serialize()).toEqual(data);
-                  done();
-                });
-            });
-        });
-      });
+    beforeEach(function () {
+      getPageType = spyOn(CurrentPageUtils, 'getPageType');
     });
 
-    describe('buildTrimmedWorkflowObject() method', () => {
-      describe('returns built trimmed workflow object which contains', () => {
-        it('a link to the workfolw', function () {
-          const link = 'www.example.com';
-          let wf;
-          spyOn(viewModel, 'buildWorkflowLink').and.returnValue(link);
-          wf = viewModel.buildTrimmedWorkflowObject();
-          expect(wf.attr('viewLink')).toBe(link);
-        });
-
-        it('a workflow title', function () {
-          const title = '123';
-          let wf;
-          viewModel.attr('instance.workflow_title', title);
-          wf = viewModel.buildTrimmedWorkflowObject();
-          expect(wf.attr('title')).toBe(title);
-        });
-      });
+    it('returns true if page type is not equal to "Workflow"', function () {
+      getPageType.and.returnValue('NotWorkflow');
+      expect(viewModel.attr('showWorkflowLink')).toBe(true);
     });
 
-    describe('buildWorkflowLink() method', () => {
-      it('returns link based on workflow id', function () {
-        const id = 1;
-        const expectedLink = `/workflows/${id}`;
-        let result;
-        viewModel.attr('instance.workflow', {id});
-        result = viewModel.buildWorkflowLink();
-        expect(result).toBe(expectedLink);
-      });
+    it('returns false if page type equals to "Workflow"', function () {
+      getPageType.and.returnValue('Workflow');
+      expect(viewModel.attr('showWorkflowLink')).toBe(false);
+    });
+  });
+
+  describe('workflowLink get() method', () => {
+    it('returns link to workflow, which is relevant to instance', () => {
+      const id = 1234567;
+      const expectedLink = `/workflows/${id}`;
+
+      viewModel.attr('instance', {workflow: {id}});
+
+      expect(viewModel.attr('workflowLink')).toBe(expectedLink);
+    });
+  });
+
+  describe('onStateChange() method', function () {
+    let event;
+
+    beforeEach(function () {
+      event = {};
+      viewModel.attr('instance', {});
+      spyOn(WorkflowHelpers, 'updateStatus');
     });
 
-    describe('onStateChange() method', function () {
-      let event;
-
-      beforeEach(function () {
-        event = {};
-        viewModel.attr('instance', {});
-        spyOn(WorkflowHelpers, 'updateStatus');
-      });
-
-      it('updates status for cycle task', function () {
-        event.state = 'New State';
-        viewModel.onStateChange(event);
-        expect(WorkflowHelpers.updateStatus).toHaveBeenCalledWith(
-          viewModel.attr('instance'),
-          event.state
-        );
-      });
-    });
-
-    describe('showLink() method', function () {
-      let pageInstance;
-
-      beforeEach(function () {
-        pageInstance = spyOn(CurrentPageUtils, 'getPageInstance');
-      });
-
-      describe('returns true', function () {
-        it('if the workflow is not a page instance', function () {
-          let pageInstanceObj = {
-            type: 'Type',
-          };
-          pageInstance.and.returnValue(pageInstanceObj);
-          expect(viewModel.showLink()).toBe(true);
-        });
-      });
-
-      describe('returns false', function () {
-        it('if the workflow is a page instance', function () {
-          let pageInstanceObj = {
-            type: 'Workflow',
-          };
-          pageInstance.and.returnValue(pageInstanceObj);
-          expect(viewModel.showLink()).toBe(false);
-        });
-      });
+    it('updates status for cycle task', function () {
+      event.state = 'New State';
+      viewModel.onStateChange(event);
+      expect(WorkflowHelpers.updateStatus).toHaveBeenCalledWith(
+        viewModel.attr('instance'),
+        event.state
+      );
     });
   });
 });
