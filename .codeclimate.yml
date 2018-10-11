@@ -6,5 +6,4 @@ languages:
   JavaScript: true
 exclude_paths:
   - "src/ggrc/assets/javascripts/generated/*"
-  - "src/ggrc/assets/vendor/*"
   - "src/ggrc/static/mockups/js/lib"
