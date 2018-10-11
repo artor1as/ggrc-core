@@ -39,7 +39,6 @@
 < git_hooks/pre-push
 < git_hooks/README.txt
 < .gitignore
-< .gitmodules
 < LICENSE
 < ._license_header_exceptions
 < node_modules
@@ -49,7 +48,6 @@
 < README.md
 < reviews/README
 < setup.cfg
-< src/ggrc/assets/vendor/bootstrap-sass
 < src/ggrc-client/js/components/release-notes-list/release-notes.md
 < src/ggrc/migrations/versions/ggrcdev.sql
 < src/ggrc/templates/maintenance/maintenance.html
