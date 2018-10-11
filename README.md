@@ -198,17 +198,6 @@ It's worth noting where there is automation in GGRC, and where there isn't.
 Often the lack of automation support for a step is intentional. Let's explore
 each step in detail.
 
-### Git Submodules in GGRC
-
-GGRC makes use of some external tools for [Sass](http://sass-lang.com/)
-templates and JavaScript form handling. In order to have the relevant
-repositories checked out as Git sub modules the following command must be
-issued in the project directory:
-
-```sh
-git submodule update --init
-```
-
 #### Reprovisioning a Docker container
 
 To reprovision a docker container run the following:
@@ -261,8 +250,8 @@ After syncing your local clone of GGRC-Core you may experience a failure when
 trying to run the application due to a change (usually an addition) to the
 prerequisites.
 
-There are three primary classes of requirements for GGRC-Core: Submodules,
-Python requirements and other provision steps
+There are two primary classes of requirements for GGRC-Core: Python requirements
+and other provision steps
 
 There are two pip requirements files: a runtime requirements file,
 `src/requirements.txt`, for application package dependencies and a
@@ -391,23 +380,6 @@ Note that if you're using `launch_gae_ggrc`, then changes to
 
 ```
 make appengine_packages
-```
-
-
-### Git Submodule Changes
-
-A change in the git sub modules required by the project could also lead to errors, particularly in the front-end HTML portion of the application. The solution is to update the submodules:
-
-```sh
-git submodule update
-```
-
-Given that Sass and Javascript related projects are included in the submodule
-requirements of GGRC, it may also be necessary to rebuild the Sass and other
-web assets:
-
-```sh
-build_assets
 ```
 
 # Copyright Notice
