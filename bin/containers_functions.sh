@@ -47,8 +47,6 @@ setup () {
 
   SERVICE=$2
 
-  git submodule update --init
-
   docker-compose --file ${DOCKER_COMPOSE_FILE} \
     --project-name ${PROJECT} \
     up --build --force-recreate -d ${SERVICE}

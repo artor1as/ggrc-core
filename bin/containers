@@ -81,7 +81,6 @@ setup () {
   if [ -f "$DOCKERFILE_OVERRIDE" ]; then
     OVERRIDE="--file $DOCKERFILE_OVERRIDE"
   fi
-  git submodule update --init
 
   # allow non-privileged mysqld to read provisioned mysql configs
   chmod o+r ./provision/docker/mysql
