@@ -6,8 +6,8 @@
 // Whole file is commented. Leaving it for now. WIll be removed later.
 // @import "bootstrap-setup";
 
-$icon-font-path: "./src/ggrc/assets/vendor/bootstrap-sass/vendor/assets/stylesheets/bootstrap";
-@import "./src/ggrc/assets/vendor/bootstrap-sass/vendor/assets/stylesheets/bootstrap";
+$icon-font-path: "~bootstrap-sass/vendor/assets/stylesheets/bootstrap";
+@import "~bootstrap-sass/vendor/assets/stylesheets/bootstrap";
 @import "~compass-mixins/lib/compass";
 
 $fa-font-path: "~font-awesome/fonts";

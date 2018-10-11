@@ -68,7 +68,8 @@
     "stats": "export NODE_ENV=production && ./node_modules/.bin/webpack --env.debug"
   },
   "napa": {
-    "canjs": "https://github.com/bitovi/canjs.com/archive/v2.3.27.tar.gz"
+    "canjs": "https://github.com/bitovi/canjs.com/archive/v2.3.27.tar.gz",
+    "bootstrap-sass": "https://github.com/twbs/bootstrap-sass/archive/v2.0.4.2.tar.gz"
   },
   "repository": {
     "type": "git",
