@@ -127,7 +127,7 @@ misspell :
 
 ## Deployment!
 
-src/ggrc/assets/assets.manifest : src/ggrc/assets
+src/ggrc/assets/assets.manifest :
 	source "bin/init_env"; \
 		GGRC_SETTINGS_MODULE="$(SETTINGS_MODULE)" bin/build_assets
 
