@@ -13,6 +13,7 @@ import {
   REFRESH_MAPPING,
   REFRESH_SUB_TREE,
 } from '../events/eventTypes';
+import {getPageInstance} from '../plugins/utils/current-page-utils';
 
 /*
  Below this line we're defining a can.Component, which is in this file
@@ -92,6 +93,15 @@ export default can.Component.extend({
         });
       });
       instance.dispatch(REFRESH_SUB_TREE);
+
+      const pageInstance = getPageInstance();
+
+      if (objects.includes(pageInstance)) {
+        pageInstance.dispatch({
+          ...REFRESH_MAPPING,
+          destinationType: instance.type,
+        });
+      }
     },
     handlePendingOperations(pendingJoins) {
       const instance = this.attr('instance');
