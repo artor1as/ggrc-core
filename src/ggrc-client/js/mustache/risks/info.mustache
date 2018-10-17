@@ -7,14 +7,12 @@
   <section class="info{{#is_info_pin}} sticky-info-panel{{/is_info_pin}}">
     <div class="tier-content">
       {{>'/static/mustache/base_objects/general-page-header.mustache'}}
-
+      
       <tab-container {instance}="instance">
         <tab-panel {(panels)}="panels" title-text="Attributes">
           <div class="info-pane__body">
             <div class="info-pane__main-content {{^if isSnapshot}}info-pane__main-content-with-sidebar{{/if}}">
-              {{^isScopeModel instance}}
-                <object-review {instance}="instance"></object-review>
-              {{/isScopeModel}}
+              <object-review {instance}="instance"></object-review>
               {{>'/static/mustache/base_objects/description.mustache'}}
               {{>'/static/mustache/base_objects/test_plan.mustache'}}
               {{>'/static/mustache/base_objects/notes.mustache'}}
@@ -105,6 +103,24 @@
           </div>
         </tab-panel>
         {{^if isSnapshot}}
+          <tab-panel
+            warning-text="Some proposals are pending approval"
+            title-text="Change Proposals"
+            extra-classes="proposal proposal__tab-warning"
+            tab-id="tab-related-proposals"
+            {(panels)}="panels"
+            {parent-instance}="instance"
+            {can-display-warning}="true"
+            {pre-render-content}="true">
+              <related-proposals
+                (update-proposals-warning)="updateWarningState(%event)"
+                {base-instance}="instance">
+              </related-proposals>
+          </tab-panel>
+          <tab-panel {(panels)}="panels" title-text="Version History">
+            <related-revisions {instance}="instance"></related-revisions>
+          </tab-panel>
+
           <tab-panel tab-id="change-log" {(panels)}="panels" title-text="Change Log">
               <revision-log {instance}="instance"></revision-log>
           </tab-panel>

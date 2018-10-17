@@ -78,6 +78,7 @@ _.assign(CoreExtension, {
       issues: path + '/issues/info.mustache',
       evidence: path + '/evidence/info.mustache',
       documents: path + '/documents/info.mustache',
+      risks: path + '/risks/info.mustache',
     };
     widgetList.add_widget(object.constructor.shortName, 'info', {
       widget_id: 'info',
