@@ -53,6 +53,77 @@
 
   {{> /static/mustache/partials/modal-ajax-test-plan.mustache}}
 
+  <div class="row-fluid">
+    <div class="span6 {{#instance.computed_errors.risk_type}}field-failure{{/instance.computed_errors.risk_type}}">
+      <label>
+        Risk Type
+        <span class="required">*</span>
+      </label>
+      {{#instance.computed_errors.risk_type}}
+        <label class="help-inline warning">{{this}}</label>
+      {{/instance.computed_errors.risk_type}}
+      <div class="rich-text">
+        <rich-text
+          tabindex="4"
+          {hidden-toolbar}="true"
+          {placeholder}="'Enter Risk Type'"
+          {(content)}="instance.risk_type">
+        </rich-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span6 hidable">
+      <label>
+        Threat Source
+        <a data-id="hide_description_lk" href="javascript://" class="field-hide" tabindex="-1">hide</a>
+      </label>
+      <div class="rich-text">
+        <rich-text
+          tabindex="5"
+          {hidden-toolbar}="true"
+          {placeholder}="'Enter Threat Source'"
+          {(content)}="instance.threat_source">
+        </rich-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span6 hidable">
+      <label>
+        Threat Event
+        <a data-id="hide_description_lk" href="javascript://" class="field-hide" tabindex="-1">hide</a>
+      </label>
+      <div class="rich-text">
+        <rich-text
+          tabindex="6"
+          {hidden-toolbar}="true"
+          {placeholder}="'Enter Threat Event'"
+          {(content)}="instance.threat_event">
+        </rich-text>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span6 hidable">
+      <label>
+        Vulnerability
+        <a data-id="hide_description_lk" href="javascript://" class="field-hide" tabindex="-1">hide</a>
+      </label>
+      <div class="rich-text">
+        <rich-text
+          tabindex="7"
+          {hidden-toolbar}="true"
+          {placeholder}="'Enter Vulnerability'"
+          {(content)}="instance.vulnerability">
+        </rich-text>
+      </div>
+    </div>
+  </div>
+
   <div class="row">
     <div class="span12 hide-wrap hidable">
       <access-control-list-roles-helper
@@ -74,7 +145,7 @@
       </label>
       <div class="rich-text">
         <rich-text
-          tabindex="6"
+          tabindex="8"
           {hidden-toolbar}="true"
           {placeholder}="'Enter Notes'"
           {(content)}="instance.notes">
@@ -94,7 +165,7 @@
   {{^if isProposal}}
     <div class="row-fluid">
       <div data-id="folder_hidden" class="span6 hidable">
-        <ggrc-gdrive-folder-picker instance="instance" deferred="true" tabindex="7">
+        <ggrc-gdrive-folder-picker instance="instance" deferred="true" tabindex="9">
         </ggrc-gdrive-folder-picker>
       </div>
     </div>
@@ -109,7 +180,7 @@
             title="The ZenGRC application will automatically provide codes for new objects. If you would like to override this feature you may manually enter a code of your choosing. You should have a specific reason for doing this."></i>
           <a href="javascript://" class="field-hide" tabindex="-1">hide</a>
         </label>
-        <input data-id="code_txtbx" {{^if new_object_form}} disabled {{/if}} tabindex="8" id="section-code" class="input-block-level" name="slug" placeholder="RISK-XXX" type="text" value="{{slug}}">
+        <input data-id="code_txtbx" {{^if new_object_form}} disabled {{/if}} tabindex="10" id="section-code" class="input-block-level" name="slug" placeholder="RISK-XXX" type="text" value="{{slug}}">
       </div>
     {{/if}}
     <div class="span4 hidable">

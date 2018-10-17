@@ -15,6 +15,41 @@
               <object-review {instance}="instance"></object-review>
               {{>'/static/mustache/base_objects/description.mustache'}}
               {{>'/static/mustache/base_objects/test_plan.mustache'}}
+
+              <div class="row-fluid wrap-row">
+                <div class="span12">
+                  <h6>Risk Type</h6>
+                  <read-more {text}="risk_type"></read-more>
+                </div>
+              </div>
+
+              {{#if_helpers '\n #if' threat_source '\n or #if' isRevision}}
+                <div class="row-fluid wrap-row">
+                  <div class="span12">
+                    <h6>Threat Source</h6>
+                    <read-more {text}="threat_source"></read-more>
+                  </div>
+                </div>
+              {{/if_helpers}}
+
+              {{#if_helpers '\n #if' threat_event '\n or #if' isRevision}}
+                <div class="row-fluid wrap-row">
+                  <div class="span12">
+                    <h6>Threat Event</h6>
+                    <read-more {text}="threat_event"></read-more>
+                  </div>
+                </div>
+              {{/if_helpers}}
+
+              {{#if_helpers '\n #if' vulnerability '\n or #if' isRevision}}
+                <div class="row-fluid wrap-row">
+                  <div class="span12">
+                    <h6>Vulnerability</h6>
+                    <read-more {text}="vulnerability"></read-more>
+                  </div>
+                </div>
+              {{/if_helpers}}
+
               {{>'/static/mustache/base_objects/notes.mustache'}}
               {{>'/static/mustache/base_objects/contacts.mustache'}}
               {{>'/static/mustache/base_objects/reference-urls.mustache'}}

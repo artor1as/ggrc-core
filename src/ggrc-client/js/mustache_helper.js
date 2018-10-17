@@ -1567,6 +1567,10 @@ Mustache.registerHelper('get_default_attr_value',
       notes: 1,
       description: 1,
       test_plan: 1,
+      risk_type: 1,
+      threat_source: 1,
+      threat_event: 1,
+      vulnerability: 1,
     });
 
     let res;

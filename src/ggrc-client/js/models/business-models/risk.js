@@ -38,8 +38,8 @@ export default Cacheable('CMS.Models.Risk', {
       GGRC.mustache_path + '/base_objects/tree_add_item.mustache',
     attr_view: GGRC.mustache_path + '/base_objects/tree-item-attr.mustache',
     attr_list: Cacheable.attr_list.concat([
-      {attr_title: 'Reference URL', attr_name: 'reference_url'},
-      {attr_title: 'Last Deprecated Date', attr_name: 'end_date'},
+      {attr_title: 'Reference URL', attr_name: 'reference_url', order: 85},
+      {attr_title: 'Last Deprecated Date', attr_name: 'end_date', order: 110},
       {
         attr_title: 'State',
         attr_name: 'status',
@@ -48,14 +48,37 @@ export default Cacheable('CMS.Models.Risk', {
         attr_title: 'Description',
         attr_name: 'description',
         disable_sorting: true,
+        order: 90,
+      }, {
+        attr_title: 'Risk Type',
+        attr_name: 'risk_type',
+        disable_sorting: true,
+        order: 95,
+      }, {
+        attr_title: 'Threat Source',
+        attr_name: 'threat_source',
+        disable_sorting: true,
+        order: 96,
+      }, {
+        attr_title: 'Threat Event',
+        attr_name: 'threat_event',
+        disable_sorting: true,
+        order: 97,
+      }, {
+        attr_title: 'Vulnerability',
+        attr_name: 'vulnerability',
+        disable_sorting: true,
+        order: 98,
       }, {
         attr_title: 'Notes',
         attr_name: 'notes',
         disable_sorting: true,
+        order: 100,
       }, {
         attr_title: 'Assessment Procedure',
         attr_name: 'test_plan',
         disable_sorting: true,
+        order: 105,
       }, {
         attr_title: 'Review State',
         attr_name: 'review_status',
@@ -70,7 +93,7 @@ export default Cacheable('CMS.Models.Risk', {
   },
   statuses: ['Draft', 'Deprecated', 'Active'],
   init: function () {
-    let reqFields = ['title', 'description'];
+    let reqFields = ['title', 'description', 'risk_type'];
     if (this._super) {
       this._super(...arguments);
     }
