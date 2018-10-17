@@ -3,6 +3,10 @@
     Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 }}
 
+<cycle-task-modal
+  {instance}="instance"
+  {pre-mapped-stubs}="object_params.pre_mapped_objects"
+>
 <form action="javascript://" class="form">
   <div class="row-fluid">
     <div class="span12 {{#instance.computed_errors.title}}field-failure{{/instance.computed_errors.title}}">
@@ -40,27 +44,25 @@
         <option value="checkbox" {{#if_equals instance.task_type 'checkbox'}}selected="selected"{{/if_equals}}>Checkbox</option>
       </select>
       <ggrc-modal-connector
-          instance="instance"
-          mapping="related_objects_as_source"
-          source_mapping="info_related_objects"
-          default_mappings="object_params.pre_mapped_objects"
-          >
+          {instance}="instance"
+          {mapped-objects}="mappedObjects"
+          {pre-mapped-objects}="preMappedObjects"
+        >
         <h6>Object(s) mapped to task</h6>
-        {{#prune_context}}
-          {{#each list}}
-            <div class="oneline">
-              <a href="javascript://" data-toggle="unmap">
-                <span class="result" {{data 'result'}}></span>
-                <i class="fa fa-trash"></i>
+        {{#each list}}
+          <div class="oneline">
+            <a
+              href="javascript://"
+              ($click)="removeMappings(.)">
+              <i class="fa fa-trash"></i>
+            </a>
+            {{#update_link .}}
+              <a class="url" href="{{schemed_url link}}" target="_blank">
+                {{firstexist title name email link}}
               </a>
-              {{#update_link .}}
-                <a class="url" href="{{schemed_url link}}" target="_blank">
-                  {{firstexist title name email link}}
-                </a>
-              {{/update_link}}
-            </div>
-          {{/each}}
-        {{/prune_context}}
+            {{/update_link}}
+          </div>
+        {{/each}}
         {{^list.length}}
           <span class="gray"><em>No mapped objects</em></span>
         {{/list.length}}
@@ -193,3 +195,4 @@
     <input type="hidden" name="status" value="{{firstnonempty instance.status 'Assigned'}}" />
   </div>
 </form>
+</cycle-task-modal>

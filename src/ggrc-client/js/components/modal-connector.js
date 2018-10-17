@@ -8,7 +8,6 @@ import {
 } from '../plugins/utils/snapshot-utils';
 import Mappings from '../models/mappers/mappings';
 import * as MapperUtils from '../plugins/utils/mapper-utils';
-import * as businessModels from '../models/business-models';
 import {
   REFRESH_MAPPING,
   REFRESH_SUB_TREE,
@@ -31,19 +30,11 @@ export default can.Component.extend({
   //  new view template files.
   template: '<isolate-form><content/></isolate-form>',
   viewModel: {
-    define: {
-      customRelatedLoader: {
-        type: Boolean,
-        value: false,
-      },
-    },
     useSnapshots: false,
     instance: null,
-    source_mapping: '@',
-    default_mappings: [], // expects array of objects
-    mapping: '@',
     list: [],
-    needToInstanceRefresh: true,
+    preMappedObjects: [],
+    mappedObjects: [],
     // the following are just for the case when we have no object to start with,
     changes: [],
     performMapActions(instance, objects) {
@@ -146,8 +137,8 @@ export default can.Component.extend({
       });
     },
     removeMappings(obj) {
-      let len = this.list.length;
-      const changes = this.changes;
+      let len = this.attr('list').length;
+      const changes = this.attr('changes');
       const indexOfAddChange = this.findObjectInChanges(obj, 'add');
 
       if (indexOfAddChange !== -1) {
@@ -159,8 +150,8 @@ export default can.Component.extend({
       }
 
       for (; len >= 0; len--) {
-        if (this.list[len] === obj) {
-          this.list.splice(len, 1);
+        if (this.attr('list')[len] === obj) {
+          this.attr('list').splice(len, 1);
         }
       }
     },
@@ -181,14 +172,12 @@ export default can.Component.extend({
         item = item.reify();
       }
 
-      this.list.push(item);
+      this.attr('list').push(item);
     },
-    setListItems(list) {
-      let currentList = this.attr('list');
-      this.attr('list', currentList.concat(can.map(list,
-        function (binding) {
-          return binding.instance || binding;
-        })));
+    updateObjectList() {
+      const updatedList = this.attr('preMappedObjects')
+        .concat(this.attr('mappedObjects'));
+      this.attr('list').replace(updatedList);
     },
     findObjectInChanges(object, changeType) {
       return _.findIndex(this.attr('changes'), (change) => {
@@ -202,51 +191,19 @@ export default can.Component.extend({
     },
   },
   events: {
-    init: function () {
-      let that = this;
-      let vm = this.viewModel;
-      vm.attr('controller', this);
-      if (vm.instance.reify) {
-        vm.attr('instance', vm.instance.reify());
-      }
-
-      const instance = vm.attr('instance');
-      vm.default_mappings.forEach(function (defaultMapping) {
-        let model;
-        let objectToAdd;
-        if (defaultMapping.id && defaultMapping.type) {
-          model = businessModels[defaultMapping.type];
-          objectToAdd = model.findInCacheById(defaultMapping.id);
-          instance
-            .mark_for_addition('related_objects_as_source', objectToAdd, {});
-          that.viewModel.addListItem(objectToAdd);
-        }
-      });
-
-      if (!vm.source_mapping) {
-        vm.attr('source_mapping', vm.mapping);
-      }
-
-      if (!vm.attr('customRelatedLoader')) {
-        Mappings.get_binding(vm.source_mapping, instance)
-          .refresh_instances()
-          .then(function (list) {
-            this.viewModel.setListItems(list);
-          }.bind(this));
-      }
-
-      this.on();
+    init() {
+      const viewModel = this.viewModel;
+      viewModel.attr('controller', this);
+      viewModel.addMappings(viewModel.attr('preMappedObjects'));
+    },
+    '{viewModel} mappedObjects'() {
+      this.viewModel.updateObjectList();
     },
     '{instance} updated'() {
       this.viewModel.deferredUpdate();
     },
     '{instance} created'() {
       this.viewModel.deferredUpdate();
-    },
-    '[data-toggle=unmap] click'(el, ev) {
-      const unmapObject = el.find('.result').data('result');
-      ev.stopPropagation();
-      this.viewModel.removeMappings(unmapObject);
     },
     'a[data-object-source] modal:success'(el, ev, object) {
       ev.stopPropagation();

@@ -19,7 +19,6 @@ export default can.Component.extend({
   tag: 'ggrc-quick-update',
   viewModel: {
     instance: null,
-    source_mapping: null,
     model: null,
     attributes: {},
   },

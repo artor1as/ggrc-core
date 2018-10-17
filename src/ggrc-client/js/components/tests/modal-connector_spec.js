@@ -80,11 +80,6 @@ describe('ggrc-modal-connector component', function () {
       handler();
       expect(that.addListItem).toHaveBeenCalledWith('mockObject');
     });
-    it('sets mapping to source_mapping if source_mapping is undefined',
-      function () {
-        handler();
-        expect(viewModel.attr('source_mapping')).toEqual('mockSource');
-      });
     it('calls setListItems() after getting mapper list' +
     ' if mapper getter is defined', function () {
       handler();

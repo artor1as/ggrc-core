@@ -132,11 +132,8 @@
         <div class="ggrc-form-item__row">
           <ggrc-modal-connector
                   class="width-100"
-                  instance="instance"
-                  mapping="related_objects_as_source"
-                  custom-related-loader="true"
-                  {list}="mappedObjects"
-                  {type}="instance.assessment_type"
+                  {instance}="instance"
+                  {mapped-objects}="mappedObjects"
                   {use-snapshots}="true"
                   {^changes}="mappedObjectsChanges">
             <label class="ggrc-form-item__label">
@@ -158,8 +155,7 @@
                   </div>
                   <div class="modal-mapped-objects-item__unmap">
                     {{#if new_object_form}}
-                      <a href="javascript://" data-toggle="unmap">
-                        <span class="result" {{data 'result'}}></span>
+                      <a href="javascript://" ($click)="removeMappings(.)">
                         <i class="fa fa-trash"></i>
                       </a>
                     {{/if}}
