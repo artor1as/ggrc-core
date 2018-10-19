@@ -15,6 +15,7 @@ from werkzeug.exceptions import BadRequest
 
 from ggrc import builder
 from ggrc import db
+from ggrc.models.custom_attribute_definition import CustomAttributeDefinition
 from ggrc.models.deferred import deferred
 from ggrc.models.revision import Revision
 from ggrc.models.mixins import base
@@ -301,8 +302,20 @@ class Comment(Roleable, Relatable, Described, Notifiable,
                        .format(ca_val_dict))
 
     self.revision_id = ca_val_revision.id
+    self.revision = ca_val_revision
+
+    # Here *attribute*_id is assigned to *definition*_id, strange but,
+    # as you can see in src/ggrc/models/custom_attribute_value.py
+    # custom_attribute_id is link to custom_attribute_definitions.id
+    # possible best way is use definition id from request:
+    # ca_revision_dict["custom_attribute_definition"]["id"]
+    # but needs to be checked that is always exist in request
     self.custom_attribute_definition_id = ca_val_revision.content.get(
         'custom_attribute_id',
+    )
+
+    self.custom_attribute_definition = CustomAttributeDefinition.query.get(
+        self.custom_attribute_definition_id,
     )
 
   @staticmethod

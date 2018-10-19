@@ -602,53 +602,86 @@ class TestCommentWithActionMixin(TestCase):
 
   def test_custom_comment_value(self):
     """Test add custom attribute value comment action."""
-    assessment = factories.AssessmentFactory()
     ca_def_title = "def1"
-    ca_def = factories.CustomAttributeDefinitionFactory(
-        title=ca_def_title,
-        definition_type="assessment",
-        definition_id=assessment.id,
-        attribute_type="Dropdown",
-        multi_choice_options="no,yes",
-        multi_choice_mandatory="0,3"
-    )
-    ca_val = factories.CustomAttributeValueFactory(
-        custom_attribute=ca_def,
-        attributable=assessment,
-        attribute_value="no"
-    )
-    response = self.api.put(assessment, {
+    value = "yes"
+    desc = "some comment"
+    context_id = 6
+
+    with factories.single_commit():
+      assessment = factories.AssessmentFactory()
+
+      ca_def = factories.CustomAttributeDefinitionFactory(
+          title=ca_def_title,
+          definition_type="assessment",
+          definition_id=assessment.id,
+          attribute_type="Dropdown",
+          multi_choice_options="no,yes",
+          multi_choice_mandatory="0,3"
+      )
+      ca_val = factories.CustomAttributeValueFactory(
+          custom_attribute=ca_def,
+          attributable=assessment,
+          attribute_value=value
+      )
+
+    request_data = {
+        "id": assessment.id,
         "custom_attribute_values": [{
             "id": ca_val.id,
             "custom_attribute_id": ca_def.id,
-            "attribute_value": "yes",
+            "attribute_value": value,
             "type": "CustomAttributeValue",
         }],
-        "actions": {"add_related": [{
-            "id": None,
-            "type": "Comment",
-            "description": "comment1",
-            "custom_attribute_definition_id": ca_def.id,
-        }]}
-    })
+    }
+    response = self.api.put(assessment, request_data)
+    self.assert200(response)
+
+    request_data = [{
+        "comment": {
+            "description": "<p>{}</p>".format(desc),
+            "context": {
+                "id": context_id,
+            },
+            "assignee_type": "Assignees,Verifiers,Creators",
+            "custom_attribute_revision_upd": {
+                "custom_attribute_value": {
+                    "id": ca_val.id,
+                },
+                "custom_attribute_definition": {
+                    "id": ca_def.id,
+                },
+            },
+        },
+    }]
+    response = self.api.post(all_models.Comment, request_data)
+    self.assert200(response)
+
+    comment = response.json[0][1]["comment"]
+    self.assertEqual(
+        comment["custom_attribute_revision"]["custom_attribute_stored_value"],
+        value)
+    self.assertEqual(
+        comment["custom_attribute_revision"]["custom_attribute"]["title"],
+        ca_def_title)
+
+    saved_comment = all_models.Comment.query.get(comment["id"])
+    revision = saved_comment.custom_attribute_revision
+    self.assertEqual(revision["custom_attribute_stored_value"], value)
+    self.assertEqual(revision["custom_attribute"]["title"], ca_def_title)
+
+    request_data = {
+        "actions": {
+            "add_related": [{
+                "id": comment["id"],
+                "type": "Comment",
+            }]
+        },
+    }
+    response = self.api.put(assessment, request_data)
     self.assert200(response)
 
     relationship = _get_relationship("Assessment", assessment.id)
     self.assertIsNotNone(relationship)
-
-    comment = all_models.Comment.query.get(relationship.destination_id)
-    comment.custom_attribute_revision_upd({
-        "custom_attribute_revision_upd": {
-            "custom_attribute_value": {
-                "id": ca_val.id,
-            },
-        },
-    })
-    comment_json = comment.log_json()
-    self.assertTrue("custom_attribute_revision" in comment_json.keys())
-    self.assertEqual(
-        comment_json["custom_attribute_revision"]['custom_attribute']['title'],
-        ca_def_title)
 
   def test_wrong_comment(self):
     """Test add custom attribute comment action without description."""
