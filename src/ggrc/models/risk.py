@@ -54,6 +54,7 @@ class Risk(Roleable,
       Validate risk_type
     """
     # pylint: disable=unused-argument
+    # pylint: disable=no-self-argument
     if value:
       return value
     else:

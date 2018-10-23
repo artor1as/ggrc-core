@@ -77,6 +77,8 @@ class TestCommentableImport(TestCase):
     if (issubclass(model_cls, Described) and
        "description" not in model_cls._aliases) or model_name == "Risk":
       import_data.append(("description", "{}-Description".format(model_name)))
+    if model_name == "Risk":
+      import_data.append(("Risk Type", "Risk type text"))
     response = self.import_data(OrderedDict(import_data))
     self._check_csv_response(response, {})
 

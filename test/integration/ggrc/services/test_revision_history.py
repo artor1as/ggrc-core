@@ -220,7 +220,7 @@ class TestRevisionHistory(TestCase):
                   'description', 'title', 'slug', 'folder']},
       {"factory": factories.RiskFactory,
        "fields": ['test_plan', 'status', 'description',
-                  'notes', 'title', 'slug', 'folder']},
+                  'notes', 'title', 'slug', 'folder', 'risk_type']},
   )
   @ddt.unpack
   def test_get_mandatory_fields(self, factory, fields):

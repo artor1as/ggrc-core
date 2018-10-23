@@ -452,6 +452,7 @@ class RiskFactory(TitledFactory):
   class Meta:
     model = all_models.Risk
 
+  risk_type = "Some Type"
   description = factory.LazyAttribute(lambda _: random_str(length=100))
 
 

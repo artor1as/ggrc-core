@@ -310,8 +310,8 @@ Not Launched
 In Scope
 Not in Scope
 Deprecated",MM/DD/YYYY,,,,,,,,,
-Risk,code*,title*,description,notes,Admin*,Effective date,map:program,,,,,,,,
-,ra-1,ra-1 EDIT,test,this is a note,user@example.com,7/1/2015,PMRBACPROGRAM-1,,,,,,,,
+Risk,code*,title*,description,Risk Type,notes,Admin*,Effective date,map:program,,,,,,,,
+,ra-1,ra-1 EDIT,test,test,this is a note,user@example.com,7/1/2015,PMRBACPROGRAM-1,,,,,,,,
 ,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,

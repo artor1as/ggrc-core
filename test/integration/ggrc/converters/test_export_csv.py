@@ -632,6 +632,8 @@ class TestExportMultipleObjects(TestCase):
       ]))
       if model == "Control":
         import_queries[-1]["Assertions"] = "Privacy"
+      if model == "Risk":
+        import_queries[-1]["Risk Type"] = "Risk type"
       if model.replace(" ", "") in self.SCOPING_MODELS_NAMES:
         import_queries[-1]["Assignee"] = "user@example.com"
         import_queries[-1]["Verifier"] = "user@example.com"

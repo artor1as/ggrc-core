@@ -803,6 +803,10 @@ class TestGetObjectColumnDefinitions(TestCase):
         "Last Updated Date",
         "Last Updated By",
         "Folder",
+        "Threat Source",
+        "Vulnerability",
+        "Threat Event",
+        "Risk Type",
     }
     expected_fields = {
         "mandatory": {
@@ -810,6 +814,7 @@ class TestGetObjectColumnDefinitions(TestCase):
             "Description",
             "Admin",
             "Title",
+            "Risk Type",
         },
         "unique": {
             "Code",

@@ -9,7 +9,7 @@ source "${SCRIPTPATH}/init_test_env"
 
 db_reset -d "ggrcdevtest"
 
-echo -e "\nRunning unit tests"
-nosetests unit --logging-clear-handlers ${@:1}
+#echo -e "\nRunning unit tests"
+#nosetests unit --logging-clear-handlers ${@:1}
 echo -e "\nRunning integration tests"
-nosetests integration --logging-clear-handlers ${@:1}
+nosetests integration/ggrc_workflows/models/test_cycle.py --logging-clear-handlers ${@:1}
