@@ -39,9 +39,10 @@ class Risk(Roleable,
 
   # Overriding mixin to make mandatory
   @declared_attr
-  def description(cls):  # pylint: disable=no-self-argument
-      return deferred(db.Column(db.Text, nullable=False, default=u""),
-                      cls.__name__)
+  def description(cls):
+    #  pylint: disable=no-self-argument
+    return deferred(db.Column(db.Text, nullable=False, default=u""),
+                    cls.__name__)
 
   risk_type = db.Column(db.Text, nullable=False)
   threat_source = db.Column(db.Text, nullable=True)
@@ -53,8 +54,7 @@ class Risk(Roleable,
     """
       Validate risk_type
     """
-    # pylint: disable=unused-argument
-    # pylint: disable=no-self-argument
+    #  pylint: disable=unused-argument,no-self-use
     if value:
       return value
     else:
