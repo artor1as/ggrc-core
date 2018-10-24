@@ -17,6 +17,7 @@ def get_modal_obj(obj_type, _selenium=None):
   mapping = {
       "assessment": AssessmentModal,
       "control": ControlModal,
+      "risk": RiskModal,
       "workflow": WorkflowModal,
       "task_group_task": TaskGroupTaskModal
   }
@@ -33,7 +34,8 @@ _FIELD_METHOD_MAPPING = {
     "task_groups": "set_first_task_group_title",  # workflow,
     "assignees": "set_assignees",  # task
     "start_date": "set_start_date",  # task
-    "due_date": "set_due_date"  # task
+    "due_date": "set_due_date",  # task
+    "risk_type": "set_risk_type"
 }
 
 
@@ -121,6 +123,19 @@ class ControlModal(BaseObjectModal):
         class_name="multiselect-dropdown__input").js_click()
     for assertion in assertions:
       multi_select_root.checkbox(id=str(assertion["id"])).js_click()
+
+
+class RiskModal(BaseObjectModal):
+  """Represents risk object modal."""
+
+  def __init__(self, _driver=None):
+    super(RiskModal, self).__init__()
+    self._fields = ["title", "description", "status", "slug", "risk_type"]
+
+  def set_risk_type(self, risk_type):
+    """Set risk type."""
+    risk_type_field = self._root.div(data_placeholder="Enter Risk Type")
+    risk_type_field.send_keys(risk_type)
 
 
 class AssessmentModal(BaseObjectModal):

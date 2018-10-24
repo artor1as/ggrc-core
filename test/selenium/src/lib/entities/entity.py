@@ -99,7 +99,7 @@ class Representation(object):
         "ASSERTIONS": "assertions",
         "PRIMARY_CONTACTS": "primary_contacts",
         "URL": "url",
-        "ID": "id"
+        "ID": "id", "RISK_TYPE": "risk_type"
     }
     csv_remap_items = {
         csv.REVISION_DATE: "updated_at"
@@ -744,6 +744,11 @@ class ObjectiveEntity(Entity):
 
 class RiskEntity(Entity):
   """Class that represent model for Risk entity."""
+
+  def __init__(self, **attrs):
+    super(RiskEntity, self).__init__()
+    self.set_attrs(
+        "risk_type", "threat_source", "threat_event", "vulnerability", **attrs)
 
 
 class OrgGroupEntity(Entity):

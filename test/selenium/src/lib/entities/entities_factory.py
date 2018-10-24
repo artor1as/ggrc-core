@@ -429,6 +429,7 @@ class RisksFactory(EntitiesFactory):
     obj = self.obj_inst().update_attrs(
         title=self.obj_title, slug=self.obj_slug,
         description=self.generate_string("description"),
+        risk_type=self.generate_string("risk_type"),
         status=unicode(object_states.DRAFT))
     if is_add_rest_attrs:
       obj.update_attrs(

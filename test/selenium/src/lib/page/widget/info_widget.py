@@ -896,8 +896,13 @@ class Risks(InfoWidget):
   def update_obj_scope(self, scope):
     """Updates obj scope."""
     scope.update(
-        admin=self.admins.get_people_emails()
+        admin=self.admins.get_people_emails(),
+        risk_type=self.risk_type()
     )
+
+  def risk_type(self):
+    """Returns the text of risk type."""
+    return self._simple_field("Risk Type").text
 
 
 class Threats(InfoWidget):
