@@ -12,12 +12,13 @@ class CompareUpdateObjectModal(base.Modal):
   # pylint: disable=too-few-public-methods
   _locators = locator.ModalUpdateObject
 
-  def __init__(self, driver):
-    super(CompareUpdateObjectModal, self).__init__(driver)
-    self.title_modal = base.Label(driver, self._locators.MODAL_TITLE)
+  def __init__(self):
+    super(CompareUpdateObjectModal, self).__init__()
+    self.title_modal = base.Label(self._driver, self._locators.MODAL_TITLE)
     self.confirmation_text = base.Label(
-        driver, self._locators.CONFIRMATION_TEXT)
-    self.button_update = base.Button(driver, self._locators.BUTTON_CONFIRM)
+        self._driver, self._locators.CONFIRMATION_TEXT)
+    self.button_update = base.Button(
+        self._driver, self._locators.BUTTON_CONFIRM)
 
   def confirm_update(self):
     """Confirm update object."""

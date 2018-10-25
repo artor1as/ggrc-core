@@ -4,7 +4,7 @@
 
 from lib import cache, constants, exception
 from lib.constants import objects, element
-from lib.element import tree_view, widget_info, tree_view_item
+from lib.element import tree_view, tree_view_item
 
 
 def _filter_out_underscore(object_name):
@@ -127,14 +127,9 @@ def get_cls_webui_service(object_name):
                   search_nested_subclasses=True)
 
 
-def get_cls_3bbs_dropdown_settings(object_name, is_tree_view_not_info):
-  """Get and return class of 3BBS dropdown settings for Tree View or
-  Info widget (Info page or Info panel). As default for Info widget, if
-  is_tree_view_not_info is True then for Tree View.
-  """
-  base_cls = widget_info.CommonInfoDropdownSettings
-  if is_tree_view_not_info:
-    base_cls = tree_view.CommonDropdownSettings
+def get_cls_3bbs_dropdown_settings(object_name):
+  """Get and return class of 3BBS dropdown settings for Tree View."""
+  base_cls = tree_view.CommonDropdownSettings
   return _factory(cls_name=object_name, parent_cls=base_cls)
 
 

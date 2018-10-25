@@ -12,28 +12,25 @@ from lib import base
 from lib.constants import (
     locator, objects, element, roles, regex, messages)
 from lib.constants.locator import WidgetInfoAssessment, WidgetInfoControl
-from lib.element import widget_info, tab_containers, tables
+from lib.element import (
+    info_widget_three_bbs, page_elements, tables, tab_element, tab_containers)
 from lib.entities import app_entity_factory
-from lib.page.modal import update_object
 from lib.page.modal.set_value_for_asmt_ca import SetValueForAsmtDropdown
 from lib.page.widget import (
-    tab_element, page_elements, object_modal, related_proposals, object_page)
+    info_panel, object_modal, object_page, related_proposals)
 from lib.page.widget.page_mixins import (WithAssignFolder, WithObjectReview,
                                          WithPageElements)
 from lib.utils import selenium_utils, help_utils, ui_utils
 
 
 class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
-  """Abstract class of common info for Info pages and Info panels.
-  For labels (headers) Will be used actual unicode elements from UI or pseudo
-  string elements from 'lib.element' module in upper case.
-  """
+  """Abstract class of common info for Info pages and Info panels."""
   # pylint: disable=too-many-public-methods
   # pylint: disable=too-many-instance-attributes
   # pylint: disable=protected-access
   _locators = locator.CommonWidgetInfo
   _elements = element.Common
-  dropdown_settings_cls = widget_info.CommonInfoDropdownSettings
+  _dropdown_settings_cls = info_widget_three_bbs.InfoWidgetThreeBbbs
   locator_headers_and_values = None
   _reference_url_label = "Reference URL"
   _evidence_url_label = "Evidence URL"
@@ -49,53 +46,61 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
     self.info_widget_locator = (
         self._locators.INFO_PAGE_ELEM if self.is_info_page else
         self._locators.INFO_PANEL_ELEM)
-    self.info_widget_elem = selenium_utils.get_when_visible(
-        self._driver, self.info_widget_locator)
-    # common for all objects
-    self.state_lbl_txt = self._elements.STATE.upper()
-    self._extend_list_all_scopes(
-        ["TITLE", self.state_lbl_txt],
-        [self.title(), self.status()])
-    self.info_3bbs_btn = self._browser.element(
-        xpath=self._locators.BUTTON_3BBS_XPATH)
     self.inline_edit_controls = self._browser.elements(
         class_name="set-editable-group")
-    # for Info Page
-    if self.is_info_page:
-      self._extend_list_all_scopes(
-          [self._elements.CREATED_AT.upper(),
-           self._elements.MODIFIED_BY.upper(),
-           self._elements.UPDATED_AT.upper()],
-          [self.created_at(), self.modified_by(), self.updated_at()])
-    # for Info Panel
-    else:
-      self.panel = (
-          SnapshotedInfoPanel(self._driver, self.info_widget_elem)
-          if (self.child_cls_name.lower() in objects.ALL_SNAPSHOTABLE_OBJS and
-              self.is_snapshoted_panel) else
-          InfoPanel(self._driver, self.info_widget_elem))
-    # for tab controller
-    if not self.is_snapshoted_panel:
-      self.tab_container_elem = self.info_widget_elem.find_element(
-          *self._locators.TAB_CONTAINER_CSS)
-      self.tab_container = (
-          tab_containers.AssessmentsTabContainer(
-              self._driver, self.tab_container_elem) if
-          self.is_asmts_info_widget else tab_containers.TabContainer(
-              self._driver, self.tab_container_elem))
-      self.tab_container.tab_controller.active_tab = (
-          self.tab_container._elements.OBJ_TAB)
-    # core element to find sub elements
-    self.core_elem = (self.info_widget_elem if self.is_snapshoted_panel else
-                      self.tab_container.active_tab_elem)
+    self.tabs = tab_element.Tabs(self._browser, tab_element.Tabs.INTERNAL)
+    self._attributes_tab_name = "Attributes"
+    self._changelog_tab_name = "Change Log"
     # for overridable methods
     if (self.__class__ in
         [Controls, Programs, Regulations, Objectives, Contracts,
          Policies, Risks, Standards, Threats, Requirements]):
+      if self.is_info_page:
+        self.tabs.ensure_tab(self._attributes_tab_name)
       self._extend_list_all_scopes_by_review_state()
     self.comment_area = self._comment_area()
     self.edit_popup = object_modal.get_modal_obj(self.obj_name, self._driver)
-    self.tabs = tab_element.Tabs(self._browser, tab_element.Tabs.INTERNAL)
+
+  @property
+  def _root(self):
+    """Returns root element (including title, 3bbs)."""
+    if self.is_info_page:
+      return self._browser.element(class_name="ggrc_controllers_info_widget")
+    return self._browser.element(class_name="sticky-info-panel")
+
+  @property
+  def _active_tab_root(self):
+    """Returns a wrapper el for active internal tab."""
+    return self._root.element(class_name=["tab-pane", "active"])
+
+  @property
+  def info_widget_elem(self):
+    """Returns info widget elem (obsolete).
+    Use `self._root` or `self._active_tab_root` instead."""
+    return selenium_utils.get_when_visible(
+        self._driver, self.info_widget_locator)
+
+  @property
+  def panel(self):
+    """Returns info panel."""
+    if self.is_snapshot_panel:
+      return info_panel.SnapshotInfoPanel(self._root)
+    return info_panel.InfoPanel(self._root)
+
+  @property
+  def is_info_page(self):
+    """Returns whether the page is info page."""
+    return self.get_current_url_fragment() == self._url_fragment()
+
+  @property
+  def is_snapshot_panel(self):
+    """Returns whether this page object represents snapshot Info Panel."""
+    return info_panel.SnapshotInfoPanel(self._root).snapshot_version_el.present
+
+  @staticmethod
+  def _url_fragment():
+    """See superclass."""
+    return "info"
 
   def title(self):
     """Returns object title."""
@@ -149,35 +154,15 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
     """Click `Assessments` button on control or objective page and return
     related asmts table.
     """
-    base.Button(self.info_widget_elem,
-                self._locators.SHOW_RELATED_ASSESSMENTS).click()
+    self._browser.link(title="Show Related Assessments").click()
     table_element = self._driver.find_element(
         *locator.ModalRelatedAssessments.MODAL)
     return tables.AssessmentRelatedAsmtsTable(self._driver, table_element)
 
-  def open_info_3bbs(self):
-    """Click to 3BBS button on Info page or Info panel to open info 3BBS modal.
-    Return: lib.element.widget_info."obj_name"DropdownSettings
-    """
-    self.info_3bbs_btn.click()
-    return self.dropdown_settings_cls(self._driver)
-
-  def get_header_and_value_txt_from_custom_scopes(self, header_text):
-    """Get one header and one value elements text from custom scopes elements
-    according to header text.
-    Example:
-    If header_text is 'header' :return ['header', 'value']
-    """
-    # pylint: disable=not-an-iterable
-    # pylint: disable=invalid-name
-    selenium_utils.wait_for_js_to_load(self._driver)
-    all_headers_and_values = self.core_elem.find_elements(
-        *self._locators.HEADERS_AND_VALUES)
-    return next((scope.text.splitlines() + [None]
-                 if len(scope.text.splitlines()) == 1
-                 else scope.text.splitlines()[:2]
-                 for scope in all_headers_and_values
-                 if header_text in scope.text), [None, None])
+  @property
+  def three_bbs(self):
+    """Returns info widget three bbs element."""
+    return self._dropdown_settings_cls(self._root)
 
   def get_header_and_value_txt_from_people_scopes(self, header_text):
     """Get with controlling header and value text from people's scopes elements
@@ -190,7 +175,7 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
     # pylint: disable=expression-not-assigned
     _header_msg, _value_msg = (
         "people header: {}, count: {}", "people list: {}, count: {}")
-    people_scopes = self.core_elem.find_elements(
+    people_scopes = self._active_tab_root.locate().find_elements(
         *self._locators.PEOPLE_HEADERS_AND_VALUES_CSS)
     [selenium_utils.wait_until_stops_moving(people_scope)
      for people_scope in people_scopes]
@@ -263,7 +248,7 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
 
   def fill_global_cas_in_popup(self, custom_attributes):
     """Fills GCAs using Edit popup."""
-    self.open_info_3bbs().select_edit()
+    self.three_bbs.select_edit()
     self.fill_ca_values(custom_attributes, is_global=True, is_inline=False)
 
   def fill_global_cas_inline(self, custom_attributes):
@@ -292,8 +277,16 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
         "custom_attributes": self.global_custom_attributes(),
         "url": self.get_url(),
         "id": self.get_obj_id(),
-        "Code": self.code()
+        "code": self.code(),
+        "state": self.status(),
+        "title": self.title()
     }
+    if self.is_info_page:
+      scope.update(
+          created_at=self.created_at(),
+          last_updated_by=self.modified_by(),
+          updated_at=self.updated_at()
+      )
     self.update_obj_scope(scope)
     return scope
 
@@ -325,50 +318,11 @@ class InfoWidget(WithPageElements, base.Widget, object_page.ObjectPage):
     self._extend_list_all_scopes(
         self.review_state_lbl.text, self.review_state_txt)
 
-
-class InfoPanel(object):
-  """Class for Info Panels."""
-  _locators = locator.WidgetInfoPanel
-
-  def __init__(self, driver, info_widget_elem):
-    self._driver = driver
-    self.info_widget_elem = info_widget_elem
-
-  def button_maximize_minimize(self):
-    """Button (toggle) maximize and minimize for Info Panels."""
-    return base.Toggle(
-        self.info_widget_elem, self._locators.BUTTON_MAXIMIZE_MINIMIZE,
-        locator.Common.NORMAL)
-
-  def button_close(self):
-    """Button close for Info Panels."""
-    return self.info_widget_elem.find_element(*self._locators.BUTTON_CLOSE)
-
-
-class SnapshotedInfoPanel(InfoPanel):
-  """Class for Info Panels of shapshoted objects."""
-  # pylint: disable=too-few-public-methods
-  _locators = locator.WidgetSnapshotsInfoPanel
-  dropdown_settings_cls = widget_info.Snapshots
-  locator_link_get_latest_ver = _locators.LINK_GET_LAST_VER
-
-  def snapshot_obj_version(self):
-    """Label of snapshot version"""
-    return base.Label(self.info_widget_elem, self._locators.SNAPSHOT_OBJ_VER)
-
-  def open_link_get_latest_ver(self):
-    """Click on link get latest version under Info panel."""
-    base.Button(self.info_widget_elem,
-                self.locator_link_get_latest_ver).click()
-    return update_object.CompareUpdateObjectModal(self._driver)
-
-  def is_link_get_latest_ver_exist(self):
-    """Find link get latest version under Info panel.
-    Return: True if link get latest version is exist,
-            False if link get latest version is not exist.
-    """
-    return selenium_utils.is_element_exist(
-        self.info_widget_elem, self.locator_link_get_latest_ver)
+  def changelog_validation_result(self):
+    """Returns changelog validation result."""
+    self.tabs.ensure_tab(self._changelog_tab_name)
+    return tab_containers.changelog_tab_validate(
+        self._browser.driver, self._active_tab_root.locate())
 
 
 class Programs(WithObjectReview, InfoWidget):
@@ -376,38 +330,20 @@ class Programs(WithObjectReview, InfoWidget):
   # pylint: disable=too-many-instance-attributes
   _locators = locator.WidgetInfoProgram
   _elements = element.ProgramInfoWidget
-  dropdown_settings_cls = widget_info.Programs
 
   def __init__(self, driver):
     super(Programs, self).__init__(driver)
-    # todo: redesign 'Programs' cls init and related methods and tests
-    self.show_advanced = base.Toggle(
-        self.tab_container.active_tab_elem,
-        self._locators.TOGGLE_SHOW_ADVANCED)
-    self.show_advanced.toggle()
     self.manager, self.manager_entered = (
         self.get_header_and_value_txt_from_people_scopes(
             self._elements.PROGRAM_MANAGERS.upper()))
     self._extend_list_all_scopes(
         self.manager, self.manager_entered)
-    self.effective_date = base.Label(
-        self.tab_container.active_tab_elem, self._locators.EFFECTIVE_DATE)
     self.reference_urls = self._related_urls(self._reference_url_label)
-
-  @property
-  def effective_date_entered(self):
-    return base.Label(
-        self.tab_container.active_tab_elem,
-        self._locators.EFFECTIVE_DATE_ENTERED)
-
-  @property
-  def notes_entered(self):
-    return base.Label(self.info_widget_elem, self._locators.NOTES_ENTERED)
 
   def els_shown_for_editor(self):
     """Elements shown for user with edit permissions"""
     return [self.request_review_btn,
-            self.info_3bbs_btn,
+            self.three_bbs,
             self.comment_area.add_section,
             self.reference_urls.add_button] + list(self.inline_edit_controls)
 
@@ -487,7 +423,7 @@ class Audits(WithAssignFolder, InfoWidget):
   # pylint: disable=too-many-instance-attributes
   _locators = locator.WidgetInfoAudit
   _elements = element.AuditInfoWidget
-  dropdown_settings_cls = widget_info.Audits
+  _dropdown_settings_cls = info_widget_three_bbs.AuditInfoWidgetThreeBbbs
 
   def __init__(self, driver):
     super(Audits, self).__init__(driver)
@@ -518,53 +454,76 @@ class Assessments(InfoWidget):
   """Model for Assessment object Info pages and Info panels."""
   # pylint: disable=invalid-name
   # pylint: disable=too-many-instance-attributes
+  # pylint: disable=too-many-public-methods
   _locators = locator.WidgetInfoAssessment
   _elements = element.AssessmentInfoWidget
-  dropdown_settings_cls = widget_info.Assessments
+  _dropdown_settings_cls = info_widget_three_bbs.AssessmentInfoWidgetThreeBbbs
 
   def __init__(self, driver):
     super(Assessments, self).__init__(driver)
-    self.is_verified_lbl_txt = self._elements.VERIFIED.upper()
-    self.is_verified = selenium_utils.is_element_exist(
-        self.info_widget_elem, self._locators.ICON_VERIFIED)
-    self.asmt_type_lbl_txt = self._elements.ASMT_TYPE.upper()
-    self.asmt_type = base.Label(
-        self.info_widget_elem, self._locators.ASMT_TYPE_CSS)
-    self.asmt_type_txt = objects.get_obj_type(self.asmt_type.text)
-    self.mapped_objects_lbl_txt = self._elements.MAPPED_OBJECTS.upper()
-    self.mapped_objects_titles_txt = self._get_mapped_objs_titles_txt()
-    self.creators_lbl_txt, self.creators_txt = (
-        self.get_header_and_value_txt_from_people_scopes(
-            self._elements.CREATORS.upper()))
-    self.assignees_lbl_txt, self.assignees_txt = (
-        self.get_header_and_value_txt_from_people_scopes(
-            self._elements.ASSIGNEES.upper()))
-    self.verifiers_lbl_txt, self.verifiers_txt = (
-        self.get_header_and_value_txt_from_people_scopes(
-            self._elements.VERIFIERS.upper()))
-    self.comments_panel = base.CommentsPanel(
-        self.info_widget_elem, self._locators.COMMENTS_CSS)
-    self.comments_lbl_txt = self.comments_panel.header_lbl.text
-    self.comments_scopes_txt = self.comments_panel.scopes
     self._assessment_tab_name = "Assessment"
+    self._related_assessments_tab_name = "Related Assessments"
+    self._related_issues_tab_name = "Related Issues"
     self._other_attributes_tab_name = "Other Attributes"
-    # todo: implement separate add mapped ctrls and mapped other objs
-    self._extend_list_all_scopes(
-        [self.is_verified_lbl_txt, self.creators_lbl_txt,
-         self.assignees_lbl_txt, self.verifiers_lbl_txt,
-         self.mapped_objects_lbl_txt, self.comments_lbl_txt,
-         self.asmt_type_lbl_txt],
-        [self.is_verified, self.creators_txt, self.assignees_txt,
-         self.verifiers_txt, self.mapped_objects_titles_txt,
-         self.comments_scopes_txt, self.asmt_type_txt])
 
   def update_obj_scope(self, scope):
     """Updates obj scope."""
     scope.update(
-        custom_attributes=self.custom_attributes(),
+        is_verified=self.is_verified,
+        assessment_type=self.assessment_type,
         evidence_urls=self.evidence_urls.get_urls(),
-        primary_contacts=self.primary_contacts.get_people_emails()
+        creators=self.creators.get_people_emails(),
+        assignees=self.assignees.get_people_emails(),
+        verifiers=self.verifiers.get_people_emails(),
+        comments=self.comments_panel.scopes,
+        custom_attributes=self.custom_attributes(),
+        primary_contacts=self.primary_contacts.get_people_emails(),
+        mapped_objects=self.mapped_objects_titles()
     )
+
+  @property
+  def is_verified(self):
+    """Returns whether assessment is verified (has verified icon)."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return self._browser.element(class_name="verified-icon").exists
+
+  @property
+  def assessment_type(self):
+    """Returns Assessment type."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return objects.get_singular(self._browser.element(
+        class_name="action-toolbar__content-item").text, title=True)
+
+  @property
+  def evidence_urls(self):
+    """Switch to tab with evidence urls and return a page element"""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return self._assessment_evidence_urls()
+
+  @property
+  def creators(self):
+    """Switch to tab with creators and return a page element."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return self._related_people_list("Creators")
+
+  @property
+  def assignees(self):
+    """Switch to tab with assignees and return a page element."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return self._related_people_list("Assignees")
+
+  @property
+  def verifiers(self):
+    """Switch to tab with verifiers and return a page element."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return self._related_people_list("Verifiers")
+
+  @property
+  def comments_panel(self):
+    """Returns comments panel."""
+    self.tabs.ensure_tab(self._assessment_tab_name)
+    return base.CommentsPanel(
+        self._root.locate(), self._locators.COMMENTS_CSS)
 
   def description(self):
     """Switch to tab with description and return a text of description."""
@@ -577,43 +536,21 @@ class Assessments(InfoWidget):
     return self._info_pane_form_field("Code").text
 
   @property
-  def evidence_urls(self):
-    """Switch to tab with evidence urls and return a page element"""
-    self.tabs.ensure_tab(self._assessment_tab_name)
-    return self._assessment_evidence_urls()
-
-  @property
   def primary_contacts(self):
     """Switch to tab with primary contacts and return a page element"""
     self.tabs.ensure_tab(self._other_attributes_tab_name)
     return self._related_people_list("Primary Contacts")
 
-  @property
-  def assignees(self):
-    """Switch to tab with assignees and return a page element."""
+  def mapped_objects_titles(self):
+    """Returns list of mapped snapshots' titles."""
+    def titles_from_current_tab():
+      """Returns list of mapped snapshots' titles on current tab."""
+      els = self._active_tab_root.elements(class_name="mapped-snapshot-item")
+      return [el.element(class_name="title").text for el in els]
     self.tabs.ensure_tab(self._assessment_tab_name)
-    return self._related_people_list("Assignees")
-
-  def _get_mapped_objs_titles_txt(self):
-    """Return lists of str for mapped snapshots titles text from current tab.
-    """
-    mapped_items = self.tab_container.active_tab_elem.find_elements(
-        *self._locators.MAPPED_SNAPSHOTS_CSS)
-    return [mapped_el.find_element(
-            *self._locators.MAPPED_SNAPSHOT_TITLE_CSS).text
-            for mapped_el in mapped_items]
-
-  def get_info_widget_obj_scope(self):
-    """Get an Assessment object's text scope (headers' (real and synthetic)
-    and values' txt) from Info Widget navigating through the Assessment's tabs.
-    """
-    self.tab_container.tab_controller.active_tab = (
-        element.AssessmentTabContainer.OTHER_ATTRS_TAB)
-    self.core_elem = self.tab_container.active_tab_elem
-    self.mapped_objects_titles_txt += self._get_mapped_objs_titles_txt()
-    obj_scope = self.obj_scope()
-    obj_scope.update(zip(self.list_all_headers_txt, self.list_all_values_txt))
-    return obj_scope
+    titles = titles_from_current_tab()
+    self.tabs.ensure_tab(self._other_attributes_tab_name)
+    return titles + titles_from_current_tab()
 
   def custom_attributes(self):
     """Returns the dictionary of all custom attributes."""
@@ -636,6 +573,22 @@ class Assessments(InfoWidget):
     """Fills LCAs on asmt page."""
     self.tabs.ensure_tab(self._assessment_tab_name)
     self.fill_ca_values(custom_attributes, is_global=False, is_inline=True)
+
+  @property
+  def related_assessments_table(self):
+    """Switches to Related Assessments tab
+    and returns AssessmentRelatedAsmtsTable.
+    """
+    self.tabs.ensure_tab(self._related_assessments_tab_name)
+    return tables.AssessmentRelatedAsmtsTable(
+        self._browser.driver, self._active_tab_root.locate())
+
+  @property
+  def related_issues_table(self):
+    """Switches to Related Issues tab and returns RelatedIssuesTable."""
+    self.tabs.ensure_tab(self._related_issues_tab_name)
+    return tables.AssessmentRelatedIssuesTable(
+        self._browser.driver, self._active_tab_root.locate())
 
   def fill_global_cas_inline(self, custom_attributes):
     """Fills GCAs inline."""
@@ -754,7 +707,6 @@ class Controls(WithAssignFolder, WithObjectReview, InfoWidget):
   # pylint: disable=too-many-instance-attributes
   _locators = locator.WidgetInfoControl
   _elements = element.ControlInfoWidget
-  dropdown_settings_cls = widget_info.Controls
 
   def __init__(self, driver):
     super(Controls, self).__init__(driver)
@@ -828,7 +780,7 @@ class Controls(WithAssignFolder, WithObjectReview, InfoWidget):
   def els_shown_for_editor(self):
     """Elements shown for user with edit permissions"""
     return [self.request_review_btn,
-            self.info_3bbs_btn,
+            self.three_bbs,
             self.comment_area.add_section,
             self.reference_urls.add_button,
             self.assign_folder_button] + list(self.inline_edit_controls)
@@ -851,7 +803,6 @@ class Objectives(InfoWidget):
 class OrgGroups(InfoWidget):
   """Model for Org Group object Info pages and Info panels."""
   _locators = locator.WidgetInfoOrgGroup
-  dropdown_settings_cls = widget_info.OrgGroups
 
   def __init__(self, driver):
     super(OrgGroups, self).__init__(driver)
@@ -882,7 +833,6 @@ class AccessGroup(InfoWidget):
 class Systems(InfoWidget):
   """Model for System object Info pages and Info panels."""
   _locators = locator.WidgetInfoSystem
-  dropdown_settings_cls = widget_info.Systems
 
   def __init__(self, driver):
     super(Systems, self).__init__(driver)
@@ -891,7 +841,6 @@ class Systems(InfoWidget):
 class Processes(InfoWidget):
   """Model for Process object Info pages and Info panels."""
   _locators = locator.WidgetInfoProcess
-  dropdown_settings_cls = widget_info.Processes
 
   def __init__(self, driver):
     super(Processes, self).__init__(driver)
@@ -900,7 +849,6 @@ class Processes(InfoWidget):
 class DataAssets(InfoWidget):
   """Model for Data Asset object Info pages and Info panels."""
   _locators = locator.WidgetInfoDataAsset
-  dropdown_settings_cls = widget_info.DataAssets
 
   def __init__(self, driver):
     super(DataAssets, self).__init__(driver)
@@ -909,7 +857,6 @@ class DataAssets(InfoWidget):
 class Products(InfoWidget):
   """Model for Product object Info pages and Info panels."""
   _locators = locator.WidgetInfoProduct
-  dropdown_settings_cls = widget_info.Products
 
   def __init__(self, driver):
     super(Products, self).__init__(driver)
@@ -918,7 +865,6 @@ class Products(InfoWidget):
 class Projects(InfoWidget):
   """Model for Project object Info pages and Info panels."""
   _locators = locator.WidgetInfoProject
-  dropdown_settings_cls = widget_info.Projects
 
   def __init__(self, driver):
     super(Projects, self).__init__(driver)
@@ -970,6 +916,8 @@ class People(base.Widget):
 
 class Dashboard(base.Widget):
   """Model for Dashboard object Info pages and Info panels."""
+  # pylint: disable=too-few-public-methods
+
   _locators = locator.Dashboard
 
   def __init__(self, driver):

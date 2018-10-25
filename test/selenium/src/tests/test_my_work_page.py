@@ -29,7 +29,7 @@ class TestMyWorkPage(base.Test):
     for _ in xrange(controls_tab.member_count):
       counter = controls_tab.get_items_count()
       (controls_tab.select_member_by_num(0).
-       open_info_3bbs().select_delete().confirm_delete())
+       three_bbs.select_delete().confirm_delete())
       controls_tab.wait_member_deleted(counter)
     controls_generic_widget = generic_widget.Controls(
         selenium, objects.CONTROLS)

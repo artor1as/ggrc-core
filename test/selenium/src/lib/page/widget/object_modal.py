@@ -6,9 +6,9 @@
 * Proposal for object
 """
 from lib import base
+from lib.element import page_elements
 from lib.entities import entity
 from lib.page.modal import unified_mapper, delete_object
-from lib.page.widget import page_elements
 from lib.utils import ui_utils
 
 

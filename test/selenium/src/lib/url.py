@@ -4,11 +4,9 @@
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 
-import re
 from urlparse import urldefrag
 
 from lib import environment
-from lib.constants import regex
 from lib.constants.objects import *  # noqa; the names are later exported
 from lib.entities import entity_operations
 
@@ -77,22 +75,6 @@ class Urls(object):
 
 class Utils(object):
   """Utils to manipulate with URLs."""
-
-  @staticmethod
-  def split_url_into_parts(url):
-    """Split URL into parts using logic from regular expression, return
-    dictionary of URL's parts.
-    """
-    (source_obj_plural, source_obj_id, widget_name,
-     mapped_obj_singular, mapped_obj_id) = (
-        re.search(regex.URL_WIDGET_INFO, url + "/").groups())
-    return {
-        "source_obj_from_url": source_obj_plural,
-        "source_obj_id_from_url": source_obj_id,
-        "widget_name_from_url": widget_name.split("_")[0],
-        "mapped_obj_from_url": mapped_obj_singular,
-        "mapped_obj_id_from_url": mapped_obj_id
-    }
 
   @staticmethod
   def get_widget_name_of_mapped_objs(obj_name, is_versions_widget=False):

@@ -13,8 +13,8 @@ from lib.element.tab_containers import DashboardWidget
 from lib.entities.entity import Representation
 from lib.page import dashboard, export_page
 from lib.page.widget import object_modal
-from lib.page.widget.info_widget import SnapshotedInfoPanel
-from lib.utils import selenium_utils, file_utils, conftest_utils
+from lib.utils import (
+    selenium_utils, file_utils, conftest_utils, test_utils, ui_utils)
 from lib.utils.string_utils import StringMethods, Symbols
 
 
@@ -311,9 +311,8 @@ class BaseWebUiService(object):
     by title and check via Info panel that object is editable.
     """
     dropdown_on_info_panel = (
-        self.open_info_panel_of_obj_by_title(src_obj, obj).open_info_3bbs())
-    element_to_verify = element.DropdownMenuItemTypes.EDIT
-    return dropdown_on_info_panel.is_item_exist(element_to_verify)
+        self.open_info_panel_of_obj_by_title(src_obj, obj).three_bbs)
+    return dropdown_on_info_panel.edit_option.exists
 
   def is_obj_unmappable_via_info_panel(self, src_obj, obj):
     """""Open generic widget of mapped objects, select object from Tree View
@@ -321,19 +320,16 @@ class BaseWebUiService(object):
     """
     # pylint: disable=invalid-name
     dropdown_on_info_panel = (
-        self.open_info_panel_of_obj_by_title(src_obj, obj).open_info_3bbs())
-    element_to_verify = element.DropdownMenuItemTypes.UNMAP
-    return dropdown_on_info_panel.is_item_exist(element_to_verify)
+        self.open_info_panel_of_obj_by_title(src_obj, obj).three_bbs)
+    return dropdown_on_info_panel.unmap_option.exists
 
   def is_obj_page_exist_via_info_panel(self, src_obj, obj):
     """Open generic widget of mapped objects, select object from Tree View
     by title and check via Info panel that object page is exist.
     """
     # pylint: disable=invalid-name
-    dropdown_on_info_panel = (
-        self.open_info_panel_of_obj_by_title(src_obj, obj).open_info_3bbs())
-    element_to_verify = element.DropdownMenuItemTypes.OPEN
-    return dropdown_on_info_panel.is_item_enabled(element_to_verify)
+    return self.open_info_panel_of_obj_by_title(
+        src_obj, obj).three_bbs.open_option.exists
 
   def filter_and_get_list_objs_from_tree_view(self, src_obj, filter_exp):
     """Filter by specified criteria and return list of objects from Tree
@@ -376,8 +372,8 @@ class BaseWebUiService(object):
     this by click on "Unmap" button.
     """
     dropdown_on_info_panel = (
-        self.open_info_panel_of_obj_by_title(src_obj, obj).open_info_3bbs())
-    dropdown_on_info_panel.select_unmap()
+        self.open_info_panel_of_obj_by_title(src_obj, obj).three_bbs)
+    dropdown_on_info_panel.unmap_option.click()
 
   def get_objs_available_to_map_via_mapper(self, src_obj):
     """Open unified mapper of object from treeview and return list of strings
@@ -454,7 +450,7 @@ class BaseWebUiService(object):
   def edit_obj(self, obj, **changes):
     """Opens `obj` and makes `changes` using Edit modal."""
     obj_info_page = self.open_info_page_of_obj(obj)
-    obj_info_page.open_info_3bbs().select_edit()
+    obj_info_page.three_bbs.select_edit()
     modal = object_modal.get_modal_obj(obj.type, self.driver)
     modal.fill_form(**changes)
     modal.save_and_close()
@@ -479,17 +475,15 @@ class SnapshotsWebUiService(BaseWebUiService):
     objs_widget = self.open_widget_of_mapped_objs(src_obj)
     obj_info_panel = (
         objs_widget.tree_view.select_member_by_title(title=obj.title).panel)
-    obj_info_panel.open_link_get_latest_ver().confirm_update()
+    obj_info_panel.get_latest_version()
     objs_widget.tree_view.wait_loading_after_actions()
-    selenium_utils.get_when_invisible(
-        self.driver, SnapshotedInfoPanel.locator_link_get_latest_ver)
 
   def is_obj_updateble_via_info_panel(self, src_obj, obj):
     """Open generic widget of mapped objects, select snapshotable object from
     Tree View by title and check via Info panel that object is updateble.
     """
     obj_info_panel = (self.open_info_panel_of_obj_by_title(src_obj, obj).panel)
-    return obj_info_panel.is_link_get_latest_ver_exist()
+    return obj_info_panel.has_link_to_get_latest_version()
 
   def submit_obj_for_review(self, obj, usr_email, comment_msg):
     """Submit control for review scenario."""
@@ -504,8 +498,7 @@ class SnapshotsWebUiService(BaseWebUiService):
     """Approve review scenario."""
     widget = self.open_info_page_of_obj(obj)
     widget.click_approve_review()
-    selenium_utils.wait_for_js_to_load(self.driver)
-    return self.info_widget_cls(self.driver)
+    ui_utils.wait_for_alert("Review is complete.")
 
 
 class AuditsService(BaseWebUiService):
@@ -520,7 +513,7 @@ class AuditsService(BaseWebUiService):
     """
     audit_info_page = self.open_info_page_of_obj(audit_obj)
     (audit_info_page.
-     open_info_3bbs().select_clone().confirm_clone(is_full=True))
+     three_bbs.select_clone().confirm_clone(is_full=True))
     cloned_audit_obj = self.entities_factory_cls().obj_inst().update_attrs(
         url=url.Utils.get_src_obj_url(self.driver.current_url))
     actual_cloned_audit_obj = self.get_obj_from_info_page(obj=cloned_audit_obj)
@@ -532,7 +525,7 @@ class AuditsService(BaseWebUiService):
     latest version.
     """
     audit_info_page = self.open_info_page_of_obj(audit_obj)
-    audit_info_page.open_info_3bbs().select_update_objs().confirm_update()
+    audit_info_page.three_bbs.select_update_objs().confirm_update()
 
 
 class AssessmentTemplatesService(BaseWebUiService):
@@ -578,17 +571,14 @@ class AssessmentsService(BaseWebUiService):
     And return result of validation of all items.
     """
     asmt_page = self.open_info_page_of_obj(obj)
-    return asmt_page.tab_container.get_tab_object(
-        element.AssessmentTabContainer.CHANGE_LOG_TAB)
+    return asmt_page.changelog_validation_result()
 
   def get_asmt_related_asmts_titles(self, asmt):
     """Open assessment Info Page. Open Related Assessments Tab on Assessment
     Info Page. And return list of related Assessments Titles.
     """
     asmt_page = self.open_info_page_of_obj(obj=asmt)
-    related_asmts_tab = asmt_page.tab_container.get_tab_object(
-        element.AssessmentTabContainer.RELATED_ASMTS_TAB)
-    return related_asmts_tab.get_related_titles(
+    return asmt_page.related_assessments_table.get_related_titles(
         asmt_type=asmt.assessment_type)
 
   def get_related_issues_titles(self, obj):
@@ -596,25 +586,28 @@ class AssessmentsService(BaseWebUiService):
     Info Page. And return list of related Issues Titles.
     """
     asmt_page = self.open_info_page_of_obj(obj=obj)
-    related_issues_tab = asmt_page.tab_container.get_tab_object(
-        element.AssessmentTabContainer.RELATED_ISSUES_TAB)
     return [issue[element.RelatedIssuesTab.TITLE.upper()]
-            for issue in related_issues_tab.get_items()]
+            for issue in asmt_page.related_issues_table.get_items()]
 
   def raise_issue(self, src_obj, issue_obj):
     """Open assessment Info Page by 'src_obj'. Open Related Issues Tab on
     Assessment Info Page and raise Issue.
     """
     asmt_page = self.open_info_page_of_obj(obj=src_obj)
-    related_issues_tab = asmt_page.tab_container.get_tab_object(
-        element.AssessmentTabContainer.RELATED_ISSUES_TAB)
-    related_issues_tab.raise_issue(issue_entity=issue_obj)
+    asmt_page.related_issues_table.raise_issue(issue_entity=issue_obj)
 
   def complete_assessment(self, obj):
     """Navigate to info page of object according to URL of object then find and
     click 'Complete' button then return info page of object in new state"""
-    self.open_info_page_of_obj(obj).click_complete()
-    return self.info_widget_cls(self.driver)
+    info_widget = self.open_info_page_of_obj(obj)
+    initial_state = info_widget.status()
+    info_widget.click_complete()
+
+    def wait_for_status_to_change():
+      """Waits for status to become completed."""
+      return self.info_widget_cls(self.driver).status() != initial_state
+    test_utils.wait_for(wait_for_status_to_change)
+    ui_utils.wait_for_spinner_to_disappear()
 
   def verify_assessment(self, obj):
     """Navigate to info page of object according to URL of object then find and
@@ -636,7 +629,7 @@ class AssessmentsService(BaseWebUiService):
   def deprecate_assessment(self, obj):
     """Deprecate an object"""
     page = self.open_info_page_of_obj(obj)
-    page.open_info_3bbs().select_deprecate()
+    page.three_bbs.select_deprecate()
     page.wait_save()
 
   def edit_assessment_answers(self, obj):
@@ -667,7 +660,7 @@ class AssessmentsService(BaseWebUiService):
     """Open ModalEdit from InfoPage of object. Open 3BBS. Select 'Edit' button
     and map snapshots from mapped_objects attribute of passed object.
     """
-    self.open_info_page_of_obj(obj).open_info_3bbs().select_edit()
+    self.open_info_page_of_obj(obj).three_bbs.select_edit()
     modal = object_modal.AssessmentModal(self.driver)
     modal.map_objects(objs_to_map)
     modal.save_and_close()

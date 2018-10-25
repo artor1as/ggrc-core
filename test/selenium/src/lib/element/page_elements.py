@@ -169,22 +169,6 @@ class CommentArea(object):
         class_name="comment-add-form__section")
 
 
-class ThreeBbs(object):
-  """Represents 3bbs element with dropdown list."""
-
-  def __init__(self, container):
-    self._root = container
-
-  def _open(self):
-    """Opens dropdown list."""
-    self._root.element(class_name="btn-3bbps").click()
-
-  def select_option_by_text(self, text):
-    """Chooses list option by text."""
-    self._open()
-    self._root.link(text=text).click()
-
-
 class CustomAttributeManager(object):
   """Manager for custom attributes.
   It finds them based on object type, whether it is

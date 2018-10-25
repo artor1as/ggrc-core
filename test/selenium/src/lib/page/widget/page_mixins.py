@@ -4,7 +4,7 @@
 # pylint: disable=too-few-public-methods
 
 from lib import base
-from lib.page.widget import page_elements
+from lib.element import page_elements
 
 
 class WithPageElements(base.WithBrowser):

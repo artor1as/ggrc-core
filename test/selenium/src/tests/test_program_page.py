@@ -30,7 +30,7 @@ class TestProgramPage(base.Test):
     """Verify url is copied to clipboard."""
     info_page = webui_service.ProgramsService(
         selenium).open_info_page_of_obj(program)
-    info_page.open_info_3bbs().select_get_permalink()
+    info_page.three_bbs.select_get_permalink()
     # test notification alert
     base.AnimatedComponent(
         selenium, [locator.WidgetInfoProgram.ALERT_LINK_COPIED],
@@ -40,7 +40,7 @@ class TestProgramPage(base.Test):
     # level (Cmd + V works on OS level).
     # https://github.com/GoogleChrome/puppeteer/issues/1313
     # https://bugs.chromium.org/p/chromedriver/issues/detail?id=30
-    info_page.open_info_3bbs().select_edit()
+    info_page.three_bbs.select_edit()
     modal = object_modal.get_modal_obj("program", selenium)
     modal.title_field.set(keys.Keys.CONTROL, "v")
     assert modal.title_field.value == program.url

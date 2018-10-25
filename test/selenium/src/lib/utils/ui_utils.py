@@ -1,6 +1,8 @@
 # Copyright (C) 2018 Google Inc.
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 """GGRC UI utility functions"""
+import re
+
 import tenacity
 
 from lib import browsers
@@ -30,3 +32,11 @@ def wait_for_spinner_to_disappear():
   """Waits until there are no spinners on the page."""
   browser = browsers.get_browser()
   browser.wait_until(lambda br: len(br.divs(class_name="spinner")) == 0)
+
+
+def wait_for_alert(text):
+  """Waits for alert with text `text` to appear."""
+  browser = browsers.get_browser()
+  browser.element(
+      class_name="alert-info", text=re.compile(text)).wait_until(
+      lambda e: e.present)

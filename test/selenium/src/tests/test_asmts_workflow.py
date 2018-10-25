@@ -356,7 +356,7 @@ class TestAssessmentsWorkflow(base.Test):
   ):
     """Test that mapped objects appear in modal after mapping."""
     webui_service.AssessmentsService(selenium).open_info_page_of_obj(
-        assessment).open_info_3bbs().select_edit()
+        assessment).three_bbs.select_edit()
     edit_asmt_modal = object_modal.AssessmentModal(selenium)
     edit_asmt_modal.map_objects([control_mapped_to_program])
     actual_titles = edit_asmt_modal.get_mapped_snapshots_titles()

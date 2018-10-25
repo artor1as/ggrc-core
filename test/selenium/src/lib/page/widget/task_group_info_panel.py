@@ -2,8 +2,9 @@
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 """Task Group info panel."""
 from lib import base
+from lib.element import three_bbs
 from lib.entities import app_entity_factory
-from lib.page.widget import table_with_headers, page_elements
+from lib.page.widget import table_with_headers
 from lib.utils import ui_utils
 
 
@@ -28,12 +29,12 @@ class TaskGroupInfoPanel(base.WithBrowser):
   @property
   def _three_bbs(self):
     """Returns three bbs element."""
-    return page_elements.ThreeBbs(self._root.element(
+    return three_bbs.ThreeBbs(self._root.element(
         class_name="pane-header__toolbar"))
 
   def click_to_edit(self):
     """Clicks to edit task group."""
-    self._three_bbs.select_option_by_text("Edit Task Group")
+    self._three_bbs.option_by_text("Edit Task Group").click()
 
   def click_add_obj(self):
     """Clicks `Add Object` button."""

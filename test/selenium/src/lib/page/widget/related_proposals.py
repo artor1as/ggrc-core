@@ -11,7 +11,7 @@ class RelatedProposals(base.WithBrowser):
 
   def get_proposals(self):
     """Get proposal rows."""
-    elements = self._browser.divs(class_name="object-list__item ")
+    elements = self._browser.divs(class_name="object-list__item")
     proposal_rows = [ProposalRow(
         row_element=element).get_proposal() for element in elements]
     return proposal_rows

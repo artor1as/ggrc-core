@@ -144,7 +144,7 @@ class TreeView(base.TreeView):
     self.info_widget_cls = info_widget_cls
     self.obj_name = obj_name
     self.dropdown_settings_cls = factory.get_cls_3bbs_dropdown_settings(
-        object_name=obj_name, is_tree_view_not_info=True)
+        object_name=obj_name)
     self.dropdown_tree_view_item_cls = factory.get_cls_dropdown_tree_view_item(
         object_name=obj_name)
     self.fields_to_set = factory.get_fields_to_set(object_name=obj_name)

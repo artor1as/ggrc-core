@@ -13,8 +13,8 @@ from selenium.webdriver.common import keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote import webelement
 
-from lib import constants, exception, mixin, url, environment, browsers
-from lib.constants import messages, objects
+from lib import constants, exception, mixin, environment, browsers
+from lib.constants import messages
 from lib.constants.element import MappingStatusAttrs
 from lib.constants.locator import CommonDropdownMenu
 from lib.decorator import lazy_property
@@ -547,40 +547,6 @@ class Widget(AbstractPage):
 
   def __init__(self, _driver=None):
     super(Widget, self).__init__()
-    self.source_url = url.Utils.get_src_obj_url(self.url)
-    url_parts = url.Utils.split_url_into_parts(self.url)
-    self.source_obj_from_url = url_parts["source_obj_from_url"]
-    self.source_obj_id_from_url = url_parts["source_obj_id_from_url"]
-    self.widget_name_from_url = (
-        url_parts["widget_name_from_url"].replace("!", ""))
-    self.mapped_obj_from_url = url_parts["mapped_obj_from_url"]
-    self.mapped_obj_id_from_url = url_parts["mapped_obj_id_from_url"]
-
-  @property
-  def is_info_page(self):
-    """Check is the current page is Info Page and not Info Panel according to
-    checking existing of element by locator and URL's logic."""
-    is_info_page = False
-    if selenium_utils.is_element_exist(
-        self._driver, (By.XPATH, constants.locator.Common.INFO_PAGE_XPATH)
-    ):
-      if ((self.widget_name_from_url in url.Widget.INFO) or
-          ((objects.get_singular(self.source_obj_from_url) ==
-           self.mapped_obj_from_url) and
-          (self.source_obj_id_from_url == self.mapped_obj_id_from_url)) or
-          (self.widget_name_from_url == self.mapped_obj_from_url ==
-           self.mapped_obj_id_from_url == "")):
-        is_info_page = True
-    return is_info_page
-
-  @property
-  def is_snapshoted_panel(self):
-    """Check is the current page is Info Panel of snapshoted object."""
-    return (not self.is_info_page and
-            (self.source_obj_from_url in (objects.AUDITS, objects.ASSESSMENTS,
-                                          objects.ISSUES)) and
-            (objects.get_plural(self.widget_name_from_url.lower())
-             in objects.ALL_SNAPSHOTABLE_OBJS))
 
 
 class TreeView(Component):
@@ -836,8 +802,6 @@ class CommentsPanel(Element):
   def __init__(self, driver, locator_or_element):
     super(CommentsPanel, self).__init__(driver, locator_or_element)
     self._items = []
-    self.header_lbl = Label(
-        self.element, self._locators.HEADER_LBL_CSS)
     self.input_txt = RichTextInputField(
         self.element, self._locators.INPUT_TXT_CSS)
     self.add_btn = Button(self.element, self._locators.ADD_BTN_CSS)

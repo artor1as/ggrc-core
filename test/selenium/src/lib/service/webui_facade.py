@@ -79,9 +79,9 @@ def assert_can_delete(selenium, obj, can_delete):
   otherwise check that user cannot delete object via UI
   """
   info_page = _get_ui_service(selenium, obj=obj).open_info_page_of_obj(obj)
-  assert info_page.info_3bbs_btn.exists == can_delete
+  assert info_page.three_bbs.exists == can_delete
   if can_delete:
-    info_page.open_info_3bbs().select_delete().confirm_delete()
+    info_page.three_bbs.select_delete().confirm_delete()
     selenium_utils.open_url(obj.url)
     assert is_error_404(selenium)
 
@@ -95,7 +95,7 @@ def _get_ui_service(selenium, obj):
 def _assert_title_editable(obj, selenium, info_page):
   """Assert that user can edit object's title"""
   new_title = "[EDITED]" + obj.title
-  info_page.open_info_3bbs().select_edit()
+  info_page.three_bbs.select_edit()
   modal = object_modal.get_modal_obj(obj.type, selenium)
   modal.fill_form(title=new_title)
   modal.save_and_close()

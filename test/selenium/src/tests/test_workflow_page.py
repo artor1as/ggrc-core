@@ -26,18 +26,25 @@ class TestCreateWorkflow(base.Test):
     workflow_ui_facade.create_workflow(workflow)
     return workflow
 
-  def test_setup_tab_is_opened_after_create_workflow(self, selenium, workflow):
+  def test_setup_tab_is_opened_after_workflow_ui_creation(
+      self, selenium, workflow
+  ):
     """Test that creation of workflow via UI redirects to Setup tab."""
     # pylint: disable=invalid-name
     workflow_tabs.SetupTab().wait_to_be_init()
     assert ui_facade.active_tab_name() == "Setup (1)"
 
-  def test_create_workflow(self, selenium, workflow):
+  def test_workflow_info_page_after_workflow_ui_creation(
+      self, selenium, workflow
+  ):
     """Test that creation of workflow via UI corrects a correct object."""
+    # pylint: disable=invalid-name
     actual_workflow = ui_facade.get_obj(workflow)
     test_utils.obj_assert(actual_workflow, workflow)
 
-  def test_create_workflow_creates_task_group(self, selenium, workflow):
+  def test_task_group_created_after_workflow_ui_creation(
+      self, selenium, workflow
+  ):
     """Test that creation of workflow via UI creates a task group."""
     # pylint: disable=invalid-name
     actual_task_groups = workflow_ui_facade.task_group_objs(
@@ -45,8 +52,8 @@ class TestCreateWorkflow(base.Test):
     test_utils.list_obj_assert(actual_task_groups, workflow.task_groups)
 
 
-class TestWorkflowPage(base.Test):
-  """Test workflow page."""
+class TestWorkflowSetupTab(base.Test):
+  """Test actions available on workflow Setup tab."""
 
   def test_default_values_in_create_task_popup(
       self, app_workflow, app_task_group, selenium
@@ -93,7 +100,7 @@ class TestWorkflowPage(base.Test):
 
 
 class TestActivateWorkflow(base.Test):
-  """Test workflow activation."""
+  """Test workflow activation and actions available after activation."""
 
   @pytest.fixture()
   def activate_workflow(

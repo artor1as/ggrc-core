@@ -4,7 +4,7 @@
 import re
 
 from lib import base, environment, url
-from lib.page.widget import tab_element
+from lib.element import tab_element
 from lib.utils import selenium_utils
 
 
@@ -53,3 +53,8 @@ class ObjectPage(base.WithBrowser):
     if match:
       return match.group(1)
     return None
+
+  def get_current_url_fragment(self):
+    """Returns url fragment of the current page."""
+    current_url = self._browser.url
+    return current_url.split("#!")[1]
