@@ -113,10 +113,22 @@ def cycle_task_entry_data_migrate(conn):
     utils.add_to_objects_without_revisions(conn, comment_id, "Comment")
 
 
+def add_columns_to_ctgot_table(conn):
+  """Add two new columns to """
+  sql = """
+    ALTER TABLE cycle_task_group_object_tasks
+      ADD recipients varchar(250) 
+        DEFAULT 'Task Assignee,Task Secondary Assignee',
+      ADD send_by_default tinyint(1) DEFAULT '1'
+  """
+  conn.execute(text(sql))
+
+
 def run_migrations():
   """Migration runner"""
   conn = op.get_bind()
   cycle_task_entry_data_migrate(conn)
+  add_columns_to_ctgot_table(conn)
 
 
 def upgrade():

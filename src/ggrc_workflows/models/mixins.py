@@ -9,6 +9,7 @@ from sqlalchemy.ext import declarative
 from ggrc import builder
 from ggrc import db
 from ggrc.models import deferred
+from ggrc.models import comment
 from ggrc.models import mixins
 from ggrc.models import reflection
 
@@ -121,3 +122,17 @@ class CycleTaskStatusValidatedMixin(CycleTaskGroupRelatedStatusValidatedMixin):
           ),
       },
   }
+
+
+class WorkflowCommentable(comment.Commentable):
+  """Mixin for commentable workflow objects."""
+
+  VALID_RECIPIENTS = frozenset([
+    "Task Assignee",
+    "Task Secondary Assignee"
+  ])
+
+  recipients = db.Column(
+    db.String,
+    nullable=True,
+    default=u"Task Assignee,Task Secondary Assignee")
