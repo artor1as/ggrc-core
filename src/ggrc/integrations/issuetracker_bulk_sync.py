@@ -102,6 +102,7 @@ class IssueTrackerBulkCreator(object):
     ).filter(
         all_models.IssuetrackerIssue.object_id.in_(obj_ids),
         all_models.IssuetrackerIssue.issue_id.is_(None),
+        all_models.IssuetrackerIssue.enabled != 0,
     ).options(
         sa.orm.Load(issuetracked_model).undefer_group(
             "{}_complete".format(obj_type),
@@ -379,6 +380,7 @@ class IssueTrackerBulkUpdater(IssueTrackerBulkCreator):
     ).filter(
         all_models.IssuetrackerIssue.object_id.in_(obj_ids),
         all_models.IssuetrackerIssue.issue_id.isnot(None),
+        all_models.IssuetrackerIssue.enabled != 0,
     ).options(
         sa.orm.Load(issuetracked_model).undefer_group(
             "{}_complete".format(obj_type),
