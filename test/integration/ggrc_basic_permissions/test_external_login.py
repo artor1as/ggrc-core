@@ -92,13 +92,19 @@ class TestExternalPermissions(TestCase):
     """Test modifier of models when working as external user."""
     model_plural = model._inflector.table_plural
     model_singular = model._inflector.table_singular
+
+    model_data = {
+        "title": "{}1".format(model_singular),
+        "context": 0,
+    }
+
+    if model_plural == "risks":
+      model_data["risk_type"] = "some text"
+
     response = self._post(
         "api/{}".format(model_plural),
         data=json.dumps({
-            model_singular: {
-                "title": "{}1".format(model_singular),
-                "context": 0
-            }
+            model_singular: model_data
         }),
         headers=self.headers)
     self.assertEqual(response.status_code, 201)
