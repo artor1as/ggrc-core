@@ -49,6 +49,7 @@ class TestBulkIssuesSync(TestCase):
           person=self.role_people["Audit Captains"],
       )
       factories.IssueTrackerIssueFactory(
+          enabled=True,
           issue_tracked_obj=audit,
           issue_type="BUG",
           issue_id=None,
@@ -69,6 +70,7 @@ class TestBulkIssuesSync(TestCase):
               person=self.role_people[role_name],
           )
         factories.IssueTrackerIssueFactory(
+            enabled=True,
             issue_tracked_obj=asmnt,
             issue_id=None,
             title=None,
@@ -267,6 +269,7 @@ class TestBulkIssuesGenerate(TestBulkIssuesSync):
               person=person,
           )
         factories.IssueTrackerIssueFactory(
+            enabled=True,
             issue_tracked_obj=issue,
             issue_id=None,
             component_id=12345,
@@ -605,6 +608,7 @@ class TestBulkIssuesUpdate(TestBulkIssuesSync):
       for _ in range(3):
         issue = factories.IssueFactory()
         factories.IssueTrackerIssueFactory(
+            enabled=True,
             issue_tracked_obj=issue,
             issue_id=self.issue_id,
             component_id=12345,
