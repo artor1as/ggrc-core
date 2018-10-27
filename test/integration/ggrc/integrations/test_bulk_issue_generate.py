@@ -50,6 +50,7 @@ class TestBulkIssuesSync(TestCase):
       )
       factories.IssueTrackerIssueFactory(
           issue_tracked_obj=audit,
+          issue_type="BUG",
           issue_id=None,
           component_id=12345,
           hotlist_id=12345,
@@ -145,7 +146,7 @@ class TestBulkIssuesSync(TestCase):
       self.assertEqual(issue.title, obj.title)
       self.assertEqual(issue.component_id, component_id)
       self.assertEqual(issue.hotlist_id, hotlist_id)
-      self.assertEqual(issue.issue_type, None)
+      self.assertEqual(issue.issue_type, "BUG")
       self.assertEqual(issue.issue_priority, "P2")
       self.assertEqual(issue.issue_severity, "S2")
       self.assertEqual(issue.assignee, assignee)
