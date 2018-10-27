@@ -19,9 +19,13 @@ from ggrc import settings
 from ggrc.app import app
 from ggrc.models import all_models
 from ggrc.models.hooks.issue_tracker import assessment_integration
+from ggrc.models.hooks.issue_tracker import integration_utils
 from ggrc.models.hooks.issue_tracker import issue_tracker_params_builder \
     as params_builder
 from ggrc.integrations.synchronization_jobs import sync_utils
+from ggrc.integrations.constants import DEFAULT_ISSUETRACKER_VALUES
+from ggrc.integrations.synchronization_jobs.assessment_sync_job import \
+    ASSESSMENT_STATUSES_MAPPING
 from ggrc.integrations import synchronization_jobs
 from ggrc.access_control.role import AccessControlRole
 
@@ -212,6 +216,84 @@ class TestIssueTrackerIntegration(SnapshotterBaseTestCase):
     assmt_id = response.json.get("assessment").get("id")
     it_issue = models.IssuetrackerIssue.get_issue("Assessment", assmt_id)
     self.check_issuetracker_issue_fields(it_issue, assmt_request_payload)
+
+  def test_fill_missing_values_from_audit(self):
+    """Check prepare_json_method get missed values from audit."""
+    with factories.single_commit():
+      audit = factories.AuditFactory()
+      factories.IssueTrackerIssueFactory(
+          enabled=True,
+          issue_tracked_obj=audit,
+          component_id=213,
+          hotlist_id=333,
+          issue_type="BUG",
+          issue_priority="S0",
+          issue_severity="P0",
+      )
+      assmt = factories.AssessmentFactory(
+          audit=audit,
+      )
+      factories.IssueTrackerIssueFactory(
+          enabled=True,
+          issue_tracked_obj=assmt
+      )
+
+    audit_issue_tracker_info = audit.issuetracker_issue.to_dict()
+    assmt_issue_tracker_info = assmt.issuetracker_issue.to_dict()
+
+    integration_utils.set_values_for_missed_fields(assmt,
+                                                   assmt_issue_tracker_info)
+
+    fields_to_check = ["component_id", "hotlist_id", "issue_type",
+                       "issue_priority", "issue_severity"]
+    for field in fields_to_check:
+      self.assertEqual(assmt_issue_tracker_info[field],
+                       audit_issue_tracker_info[field])
+
+  def test_fill_missing_values_from_default(self):
+    """Check prepare_json_method get missed values from default values."""
+    with factories.single_commit():
+      assmt = factories.AssessmentFactory()
+      factories.IssueTrackerIssueFactory(
+          enabled=True,
+          issue_tracked_obj=assmt
+      )
+
+    assmt_issue_tracker_info = assmt.issuetracker_issue.to_dict()
+
+    integration_utils.set_values_for_missed_fields(assmt,
+                                                   assmt_issue_tracker_info)
+
+    fields_to_check = ["component_id", "hotlist_id", "issue_type",
+                       "issue_priority", "issue_severity"]
+    for field in fields_to_check:
+      self.assertEqual(assmt_issue_tracker_info[field],
+                       DEFAULT_ISSUETRACKER_VALUES[field])
+
+  def test_fill_missing_values_from_assmt(self):
+    """Check prepare_json_method get missed values from default values."""
+    with factories.single_commit():
+      assmt = factories.AssessmentFactory(
+          start_date="2015-10-09",
+          status="Not Started",
+          title="title",
+      )
+      factories.IssueTrackerIssueFactory(
+          enabled=True,
+          issue_tracked_obj=assmt
+      )
+
+    assmt_issue_tracker_info = assmt.issuetracker_issue.to_dict()
+
+    integration_utils.set_values_for_missed_fields(assmt,
+                                                   assmt_issue_tracker_info)
+
+    self.assertEqual(assmt_issue_tracker_info["title"],
+                     assmt.title)
+    self.assertEqual(assmt_issue_tracker_info["due_date"],
+                     assmt.start_date)
+    self.assertEqual(assmt_issue_tracker_info["status"],
+                     ASSESSMENT_STATUSES_MAPPING[assmt.status])
 
   @mock.patch("ggrc.integrations.issues.Client.update_issue")
   @mock.patch.object(settings, "ISSUE_TRACKER_ENABLED", True)
