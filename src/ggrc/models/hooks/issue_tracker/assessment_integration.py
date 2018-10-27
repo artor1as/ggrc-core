@@ -823,7 +823,8 @@ def prepare_issue_json(assessment, issue_tracker_info=None,
     )
 
   integration_utils.normalize_issue_tracker_info(issue_tracker_info)
-
+  integration_utils.set_values_for_missed_fields(assessment,
+                                                 issue_tracker_info)
   assignee_email, cc_list = _collect_assessment_emails(assessment)
   if assignee_email is not None:
     issue_tracker_info['assignee'] = assignee_email
