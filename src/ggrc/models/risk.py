@@ -51,14 +51,19 @@ class Risk(Roleable,
 
   @validates("risk_type")
   def validate_risk_type(self, key, value):
-    """
-      Validate risk_type
-    """
+    """Validate risk_type"""
     #  pylint: disable=unused-argument,no-self-use
     if value:
       return value
     else:
-      raise ValueError('Value shouldn\'t be empty')
+      raise ValueError("Risk Type value shouldn't be empty")
+
+  _sanitize_html = [
+      'risk_type',
+      'threat_source',
+      'threat_event',
+      'vulnerability'
+  ]
 
   _fulltext_attrs = [
       'risk_type',
@@ -79,13 +84,6 @@ class Risk(Roleable,
           "display_name": "Description",
           "mandatory": True
       },
-      "documents_file": None,
-      "status": {
-          "display_name": "State",
-          "mandatory": False,
-          "description": "Options are: \n {}".format('\n'.join(
-              mixins.BusinessObject.VALID_STATES))
-      },
       "risk_type": {
           "display_name": "Risk Type",
           "mandatory": True
@@ -101,5 +99,12 @@ class Risk(Roleable,
       "vulnerability": {
           "display_name": "Vulnerability",
           "mandatory": False
+      },
+      "documents_file": None,
+      "status": {
+          "display_name": "State",
+          "mandatory": False,
+          "description": "Options are: \n {}".format('\n'.join(
+              mixins.BusinessObject.VALID_STATES))
       }
   }

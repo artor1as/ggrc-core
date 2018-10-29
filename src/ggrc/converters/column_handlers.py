@@ -114,6 +114,10 @@ _DEFAULT_COLUMN_HANDLERS_DICT = {
     "title": handlers.TextColumnHandler,
     "updated_at": handlers.ExportOnlyDateColumnHandler,
     "verify_frequency": handlers.OptionColumnHandler,
+    "risk_type": handlers.TextColumnHandler,
+    "threat_source": handlers.TextColumnHandler,
+    "threat_event": handlers.TextColumnHandler,
+    "vulnerability": handlers.TextColumnHandler,
 
     # Mapping column handlers
     "__mapping__:person": handlers.PersonMappingColumnHandler,
