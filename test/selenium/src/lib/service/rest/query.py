@@ -81,3 +81,22 @@ class Query(object):
             "right": email
         }
     }
+
+  @staticmethod
+  def expression_get_obj_proposals(obj_type, obj_id):
+    """Expression to get obj proposals according to object's type and id."""
+    return {
+        "expression": {
+            "left": {
+                "left": "instance_type",
+                "op": {"name": alias.EQUAL_OP},
+                "right": str(obj_type)
+            },
+            "op": {"name": alias.AND_OP},
+            "right": {
+                "left": "instance_id",
+                "op": {"name": alias.EQUAL_OP},
+                "right": obj_id
+            }
+        }
+    }

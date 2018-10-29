@@ -16,6 +16,12 @@ def create_proposal(selenium, obj):
   return proposal_ui_service.ProposalsService(selenium).create_proposal(obj)
 
 
+def apply_proposal(selenium, obj, proposal):
+  """Apply an obj proposal."""
+  proposal_service = proposal_ui_service.ProposalsService(selenium)
+  proposal_service.apply_proposal(obj, proposal)
+
+
 def get_related_proposals(selenium, obj):
   """Get related proposals."""
   return proposal_ui_service.ProposalsService(
@@ -41,7 +47,7 @@ def assert_proposal_apply_btns_exist(
   """Check proposal apply buttons existence."""
   actual_apply_btns_existence = [
       proposal_ui_service.ProposalsService(
-          selenium).is_proposal_apply_btn_exist(obj, proposal)
+          selenium).has_proposal_apply_btn(obj, proposal)
       for proposal in proposals]
   exp_apply_btns_existence = [apply_btn_exists] * len(proposals)
   assert exp_apply_btns_existence == actual_apply_btns_existence

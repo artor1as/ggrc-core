@@ -31,4 +31,9 @@ def _is_weekend(date):
 
 def str_to_date(date_str, date_format):
   """Converts string in format `format` to date."""
-  return datetime.datetime.strptime(date_str, date_format).date()
+  return str_to_datetime(date_str, date_format).date()
+
+
+def str_to_datetime(datetime_str, datetime_format):
+  """Converts string in format to datetime."""
+  return datetime.datetime.strptime(datetime_str, datetime_format)

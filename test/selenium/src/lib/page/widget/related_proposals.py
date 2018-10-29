@@ -2,8 +2,10 @@
 # Copyright (C) 2018 Google Inc.
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 """Related proposals."""
+from dateutil import tz
 from lib import base
 from lib.entities import entity
+from lib.utils import date_utils
 
 
 class RelatedProposals(base.WithBrowser):
@@ -16,13 +18,20 @@ class RelatedProposals(base.WithBrowser):
         row_element=element).get_proposal() for element in elements]
     return proposal_rows
 
-  def has_apply_btn(self, proposal):
-    """Check if proposal apply button exists."""
-    proposals = self.get_proposals()
-    proposal_index = proposals.index(proposal)
+  def proposal_row(self, proposal):
+    """Return proposal row."""
+    proposal_index = self.get_proposals().index(proposal)
     element = self._browser.divs(
         class_name="object-list__item ")[proposal_index]
-    return ProposalRow(row_element=element).has_review_apply_btn()
+    return ProposalRow(row_element=element)
+
+  def has_apply_btn(self, proposal):
+    """Check if proposal apply button exists."""
+    return self.proposal_row(proposal).has_review_apply_btn()
+
+  def click_apply_btn(self, proposal):
+    """Click on the proposal apply button."""
+    self.proposal_row(proposal).click_review_apply_btn()
 
 
 class ProposalRow(object):
@@ -36,6 +45,7 @@ class ProposalRow(object):
     return entity.ProposalEntity(
         status=self.get_status(), author=self.get_author(),
         changes=self.get_changes(),
+        datetime=self.get_datetime().replace(tzinfo=tz.tzlocal()),
         comment=self.get_comment())
 
   def get_status(self):
@@ -47,9 +57,17 @@ class ProposalRow(object):
     return self._row_element.element(
         class_name="object-history__author-info").text.split(' ')[2]
 
-  def get_datetime(self):
+  def get_datetime(self, as_date=True):
     """Get proposal datetime."""
-    return self._row_element.element(class_name="object-history__date").text
+    # Last 7 symbols are the UTC offset in +(-)HH:MM format. It is not
+    # needed here because we have tz.tzlocal() when creating datetime.
+    # %z directive is not working if ":" symbol is removed
+    # from UTC offset substring.
+    datetime_str = self._row_element.element(
+        class_name="object-history__date").text[:-7]
+    if not as_date:
+      return datetime_str
+    return date_utils.str_to_datetime(datetime_str, "%m/%d/%Y %I:%M:%S %p")
 
   def get_changes(self):
     """Get proposal changes."""
@@ -79,3 +97,7 @@ class ProposalRow(object):
   def has_review_apply_btn(self):
     """Check if proposal Review&Apply button exists."""
     return self._row_element.element(tag_name="button").exists
+
+  def click_review_apply_btn(self):
+    """Click on the proposal review and apply button."""
+    self._row_element.element(tag_name="button").click()

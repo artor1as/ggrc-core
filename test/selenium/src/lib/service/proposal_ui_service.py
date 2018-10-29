@@ -2,8 +2,9 @@
 # Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 """Services for create and manipulate Proposal objects via UI."""
 from lib import factory, base
-from lib.constants import objects
+from lib.constants import objects, object_states
 from lib.entities import entities_factory
+from lib.page.modal import apply_decline_proposal
 from lib.page.widget import object_modal
 
 
@@ -36,6 +37,13 @@ class ProposalsService(base.WithBrowser):
     """Get related proposals."""
     return self.open_obj_change_proposals_tab(obj).get_proposals()
 
-  def is_proposal_apply_btn_exist(self, obj, proposal):
+  def has_proposal_apply_btn(self, obj, proposal):
     """Check if proposal apply btn exists for an obj."""
     return self.open_obj_change_proposals_tab(obj).has_apply_btn(proposal)
+
+  def apply_proposal(self, obj, proposal):
+    """Apply an obj proposal."""
+    self.open_obj_change_proposals_tab(obj).click_apply_btn(proposal)
+    apply_decline_proposal.CompareApplyDeclineModal().click_apply_btn()
+    proposal.status = object_states.APPLIED
+    proposal.changes[0]["cur_value"] = proposal.changes[0]["proposed_value"]

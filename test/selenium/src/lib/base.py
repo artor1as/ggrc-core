@@ -115,7 +115,8 @@ class Test(InstanceRepresentation):
     if not is_condition:
       pytest.xfail(reason=issue_msg + assert_msg)
     else:
-      pytest.fail(msg=issue_msg + " was fixed" + assert_msg)
+      pytest.fail(
+          msg=issue_msg + " was fixed or changed behavior" + assert_msg)
 
 
 class TestUtil(InstanceRepresentation):
