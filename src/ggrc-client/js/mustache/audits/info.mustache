@@ -75,12 +75,13 @@
 
           <div class="row-fluid wrap-row">
             <div class="span6">
+                <h6>Attachment</h6>
                 {{#if_helpers '\n #if' instance.archived '\n or ^is_allowed' 'update' instance context='for'}}
-                    <ggrc-gdrive-folder-picker
-                      {hide-label}="true"
-                      {readonly}="true"
-                      {instance}="instance">
-                    </ggrc-gdrive-folder-picker>
+                  <ggrc-gdrive-folder-picker
+                    {hide-label}="true"
+                    {readonly}="true"
+                    {instance}="instance">
+                  </ggrc-gdrive-folder-picker>
                 {{else}}
                   <ggrc-gdrive-folder-picker
                     {hide-label}="true"
