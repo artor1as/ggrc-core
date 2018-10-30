@@ -380,3 +380,30 @@ class TestCycleTaskApiCalls(workflow_test_case.WorkflowTestCase):
     items = colections["cycle_task_group_object_tasks"]
     self.assertEqual(1, len(items))
     self.assertEqual(ctgts[filter_flag].id, items[0]["id"])
+
+  def test_ctgot_new_comments(self):
+    """Test if ctgot create with new comments"""
+    comment = self.api_helper.post(all_models.Comment, {
+      "comment": {
+        "context": None,
+        "description": "test1"
+      },
+    })
+    comment_json = comment.json.get("comment")
+
+    self.assertEqual(comment.status_code, 201)
+    self.assertEqual(comment_json.get("description"), "test1")
+
+    comment_id = comment_json.get("id")
+    comment_type = comment_json.get("type")
+    ctgot = wf_factories.CycleTaskFactory()
+    ctgot_id = ctgot.id
+    response = self.api_helper.post(all_models.Relationship, {
+      "relationship": {
+        "source": {"id": ctgot_id, "type": ctgot.type},
+        "destination": {"id": comment_id, "type": comment_type},
+        "context": None
+      },
+    })
+
+    self.assertEqual(response.status_code, 201)
