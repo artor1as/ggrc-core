@@ -90,6 +90,48 @@ class CycleTaskRBACFactory(base.BaseRBACFactory):
       )
     return responses
 
+  def add_comment(self):
+    """Map new comment to cycle task."""
+    cycle_task = all_models.CycleTaskGroupObjectTask.query.get(
+        self.cycle_task_id
+    )
+    _, comment = self.objgen.generate_object(all_models.Comment, {
+        "description": factories.random_str(),
+        "context": None,
+    })
+    return self.objgen.generate_relationship(source=cycle_task,
+                                             destination=comment)[0]
+
+  def read_comment(self):
+    """Read comments mapped to cycle task"""
+    cycle_task = all_models.CycleTaskGroupObjectTask.query.get(
+        self.cycle_task_id
+    )
+    with factories.single_commit():
+      comment = factories.CommentFactory(description=factories.random_str())
+      factories.RelationshipFactory(source=cycle_task, destination=comment)
+
+    query_request_data = [{
+        "fields": [],
+        "filters": {
+            "expression": {
+                "object_name": "CycleTaskGroupObjectTask",
+                "op": {
+                    "name": "relevant"
+                },
+                "ids": [cycle_task.id]
+            }
+        },
+        "object_name": "Comment",
+    }]
+
+    response = self.api.send_request(
+        self.api.client.post,
+        data=query_request_data,
+        api_link="/query"
+    )
+    return response
+
   def map_control(self):
     """Map Control on which user don't have any rights to Cycle Task."""
     cycle_task = all_models.CycleTaskGroupObjectTask.query.first()
@@ -103,6 +145,7 @@ class CycleTaskRBACFactory(base.BaseRBACFactory):
     """Map Control that was created by user to Cycle Task."""
     cycle_task = all_models.CycleTaskGroupObjectTask.query.first()
     control = factories.ControlFactory()
+    # pylint: disable=protected-access
     for acl in control._access_control_list:
       if acl.ac_role_id == self.admin_control_id:
         factories.AccessControlPersonFactory(
