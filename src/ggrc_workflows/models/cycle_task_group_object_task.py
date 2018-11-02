@@ -167,6 +167,11 @@ class CycleTaskGroupObjectTask(roleable.Roleable,
       return self.cycle.folder
     return ""
 
+  @builder.simple_property
+  def is_in_history(self):
+    """Used on UI to disable editing finished CycleTask which is in history"""
+    return not self.cycle.is_current
+
   @property
   def cycle_task_objects_for_cache(self):
     """Changing task state must invalidate `workflow_state` on objects
@@ -194,6 +199,8 @@ class CycleTaskGroupObjectTask(roleable.Roleable,
       reflection.Attribute('workflow_title', create=False, update=False),
       reflection.Attribute('cycle_task_group_title', create=False,
                            update=False),
+      reflection.Attribute('is_in_history', create=False, update=False),
+
   )
 
   default_description = "<ol>"\
