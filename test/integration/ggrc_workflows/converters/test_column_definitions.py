@@ -141,10 +141,13 @@ class TestWorkflowObjectColumnDefinitions(TestCase):
         "Task Group",
         "State",
         "Delete",
-        'Created Date',
-        'Last Updated Date',
-        'Last Updated By',
-        'Last Deprecated Date',
+        "Created Date",
+        "Last Updated Date",
+        "Last Updated By",
+        "Last Deprecated Date",
+        "Send by default",
+        "Comments",
+        "Recipients",
     }
     expected_names = element_names.union(mapping_names).union(unmapping_names)
     self.assertEqual(expected_names, display_names)
