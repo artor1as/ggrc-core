@@ -47,6 +47,7 @@ owner_read = owner_base + [
         }
     },
     "Role",
+    "Comment",
     "UserRole",
     "Context",
     "Person",
