@@ -20,7 +20,7 @@ def upgrade():
   sql = """
     ALTER TABLE cycle_task_group_object_tasks
       ADD recipients varchar(250)
-        DEFAULT 'Task Assignee,Task Secondary Assignee',
+        DEFAULT 'Task Assignees,Task Secondary Assignees',
       ADD send_by_default tinyint(1) DEFAULT '1'
   """
   op.execute(sql)
